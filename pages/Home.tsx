@@ -50,7 +50,7 @@ const Home: React.FC = () => {
           回复TD退订 
         </p>
         <div className="mt-10">
-  <button
+  {/* <button
     onClick={() => {
       window.location.hash = '#/annual/2025';
     }}
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
     "
   >
     Annual Review 2025 →
-  </button>
+  </button> */}
 </div>
       </section>
 
@@ -94,7 +94,7 @@ const Home: React.FC = () => {
   {!loading && articles.length === 0 && (
     <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-3xl">
       <p className="text-gray-600">
-        No signals detected yet. Deploy content in Strapi to begin.
+        Wait...
       </p>
     </div>
   )}

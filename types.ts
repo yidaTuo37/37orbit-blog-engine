@@ -11,6 +11,7 @@ export interface Article {
   title: string;
   slug: string;
   content: string;
+  context?: unknown;
   publishedAt: string;
   cover?: Media[];
 }
