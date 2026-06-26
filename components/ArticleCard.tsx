@@ -1,27 +1,28 @@
 
 import React from 'react';
-import { Article } from '../types';
+import { Post } from '../types';
 import { getMediaURL } from '../services/api';
 
 interface Props {
-  article: Article;
+  article: Post;
 }
 
 const ArticleCard: React.FC<Props> = ({ article }) => {
-  const imageUrl = getMediaURL(article.cover?.[0]?.url);
+  const imageUrl = getMediaURL(article.cover);
   return (
-    <a href={`#/article/${article.documentId}`} 
+    <a href={`#/article/${article.slug}`} 
     className="article-card group">
 
       <div className="aspect-[16/10] overflow-hidden relative">
-        <img 
-          src={imageUrl} 
-          alt={article.title}
-          className="w-full h-full object-cover 
-          transition-transform duration-700 
-          group-hover:scale-110
-          "
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={article.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        ) : (
+          <div className="h-full w-full bg-white/5" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] to-transparent opacity-60"></div>
       </div>
       
@@ -31,13 +32,16 @@ const ArticleCard: React.FC<Props> = ({ article }) => {
             ARTICLE
           </span>
           <span className="text-[10px] text-gray-500 font-mono">
-            {new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {new Date(article.updated_at || article.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
         </div>
         
         <h3 className="text-2xl font-bold text-white group-hover:text-[#FF791B] transition-colors leading-tight mb-4">
           {article.title}
         </h3>
+        {article.summary && (
+          <p className="text-sm text-gray-500 leading-relaxed mb-5 line-clamp-2">{article.summary}</p>
+        )}
         
         <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
           <span>Read Mission Briefing</span>

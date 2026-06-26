@@ -1,65 +1,51 @@
-import React, { useEffect, useState } from 'react';
-import { strapiService, getMediaURL } from '../services/api';
-import { Article } from '../types';
-import { BlockV01, normalizeStrapiBlocksToV01 } from '../blocks';
-import BlockRenderer from '../components/BlockRenderer';
+import React, { useEffect, useMemo, useState } from 'react';
+import 'katex/dist/katex.min.css';
+import { contentService, getMediaURL } from '../services/api';
+import { Post } from '../types';
 
-const extractPlainTextFromBlocks = (blocks: BlockV01[]) => {
-  const walkInline = (nodes: any[]): string =>
-    (nodes ?? [])
-      .map((n) => {
-        if (!n || typeof n !== 'object') return '';
-        if (n.type === 'text') return typeof n.text === 'string' ? n.text : '';
-        if (n.type === 'link') return walkInline(n.children ?? []);
-        return '';
-      })
-      .join('');
-
-  return (blocks ?? [])
-    .map((b: any) => {
-      if (b?.type === 'paragraph' || b?.type === 'heading') return walkInline(b.children ?? []);
-      return '';
-    })
-    .join('');
+type Props = {
+  slug: string;
 };
 
-const estimateReadTime = (blocks: BlockV01[]) => {
-  const text = extractPlainTextFromBlocks(blocks);
-  const charCount = text.length;
-  // 粗略估算：400 字 / 分钟
-  return Math.max(1, Math.round(charCount / 400));
-};
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '');
+}
 
-const ArticleDetail: React.FC = () => {
+function estimateReadTime(post: Post): number {
+  const text = post.content || stripHtml(post.html || '');
+  return Math.max(1, Math.round(text.length / 400));
+}
+
+const ArticleDetail: React.FC<Props> = ({ slug }) => {
   const [progress, setProgress] = useState(0);
-  const hash = window.location.hash;
-  const raw = hash.split('/article/')[1] || '';
-  const documentId = decodeURIComponent(raw.split('?')[0]).replace(/\/+$/, '');
-
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const normalizedSlug = decodeURIComponent(slug.split('?')[0] || '').replace(/\/+$/, '');
 
   useEffect(() => {
-    if (!documentId) {
-      setError('Invalid article id.');
+    if (!normalizedSlug) {
+      setError('Invalid article slug.');
       setLoading(false);
       return;
     }
+
     const loadArticle = async () => {
       try {
-        const data = await strapiService.getArticleByDocumentId(documentId);
+        const data = await contentService.getPostBySlug(normalizedSlug);
         if (!data) throw new Error('Article not found');
         setArticle(data);
       } catch (err) {
+        console.error('Failed to load article:', err);
         setError('Transmission failed.');
       } finally {
         setLoading(false);
       }
     };
+
     loadArticle();
-  }, [documentId]);
+  }, [normalizedSlug]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,17 +64,21 @@ const ArticleDetail: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (loading)
-    return <div className="py-40 text-center font-mono animate-pulse">DECRYPTING PACKET.</div>;
-  if (error || !article)
-    return <div className="py-40 text-center text-red-400">Article not found in current sector.</div>;
+  const coverUrl = useMemo(() => getMediaURL(article?.cover), [article?.cover]);
 
-  const normalized = normalizeStrapiBlocksToV01(article.context);
-  const readMinutes = estimateReadTime(normalized.blocks);
+  if (loading) {
+    return <div className="py-40 text-center font-mono animate-pulse">DECRYPTING PACKET.</div>;
+  }
+
+  if (error || !article) {
+    return <div className="py-40 text-center text-red-400">Article not found in current sector.</div>;
+  }
+
+  const readMinutes = estimateReadTime(article);
+  const displayDate = article.updated_at || article.created_at;
 
   return (
     <>
-      {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-[2px] z-50 bg-transparent">
         <div
           className="h-full bg-[#FF791B] transition-[width] duration-150 ease-out"
@@ -112,44 +102,44 @@ const ArticleDetail: React.FC = () => {
           <div className="flex items-center gap-6 text-sm text-gray-500 font-medium">
             <div className="flex items-center gap-2">
               <div className="w-1 h-1 bg-[#FF791B] rounded-full"></div>
-              <span>Published {new Date(article.publishedAt).toLocaleDateString()}</span>
+              <span>Published {new Date(displayDate).toLocaleDateString()}</span>
             </div>
             <span>•</span>
             <span>{readMinutes} min read</span>
           </div>
         </div>
 
-        <div className="rounded-3xl overflow-hidden mb-10 md:mb-12 border border-white/5 shadow-2xl">
-          <img
-            src={getMediaURL(article.cover?.[0]?.url)}
-            alt={article.title}
-            className="cursor-zoom-in"
-            onClick={() => {
-              const url = getMediaURL(article.cover?.[0]?.url);
-              if (url) setPreviewImage(url);
-            }}
-          />
-        </div>
+        {coverUrl && (
+          <div className="rounded-3xl overflow-hidden mb-10 md:mb-12 border border-white/5 shadow-2xl">
+            <img
+              src={coverUrl}
+              alt={article.title}
+              className="cursor-zoom-in w-full"
+              onClick={() => setPreviewImage(coverUrl)}
+            />
+          </div>
+        )}
 
-        {/* Article Content */}
         <div className="h-px bg-white/5 mb-8"></div>
 
-        <div className="max-w-none">
-          <BlockRenderer
-            doc={normalized}
-            onImageClick={(absUrl) => setPreviewImage(absUrl)}
-            className="space-y-6"
-          />
-        </div>
+        <div
+          className="prose prose-invert max-w-none"
+          onClick={(event) => {
+            const target = event.target;
+            if (target instanceof HTMLImageElement && target.currentSrc) {
+              setPreviewImage(target.currentSrc);
+            }
+          }}
+          dangerouslySetInnerHTML={{ __html: article.html || '' }}
+        />
       </article>
 
-      {/* Preview Overlay */}
       {previewImage && (
         <div
           className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
           onClick={() => setPreviewImage(null)}
         >
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <div className="relative" onClick={(event) => event.stopPropagation()}>
             <button
               aria-label="Close image preview"
               className="

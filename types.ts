@@ -1,19 +1,18 @@
 // src/types.ts
 
-export interface Media {
-  url: string;
-  alternativeText?: string;
-}
-
-export interface Article {
+export interface Post {
   id: number;
-  documentId: string;
-  title: string;
   slug: string;
-  content: string;
-  context?: unknown;
-  publishedAt: string;
-  cover?: Media[];
+  title: string;
+  summary: string;
+  tags: string[];
+  category: string;
+  cover: string;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+  content?: string;
+  html?: string;
 }
 
 export interface AnnualArticle {

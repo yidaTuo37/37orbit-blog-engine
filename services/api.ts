@@ -1,57 +1,50 @@
-// src/services/api.ts
+import { Post } from '../types';
 
-const API_URL = import.meta.env.VITE_STRAPI_API_URL as string;
+const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
 
-if (!API_URL) {
-  throw new Error('VITE_STRAPI_API_URL is not defined');
+type ListResponse = {
+  items: Post[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export interface ContentSource {
+  getPosts(): Promise<Post[]>;
+  getPostBySlug(slug: string): Promise<Post | null>;
 }
-/**
- * Convert Strapi media relative URL to absolute URL
- */
+
+function apiPath(path: string): string {
+  return API_URL ? `${API_URL}${path}` : path;
+}
+
 export const getMediaURL = (url?: string | null): string => {
   if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return `${API_URL}${url}`;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (!url.startsWith('/')) return url;
+  return API_URL ? `${API_URL}${url}` : url;
 };
 
-interface StrapiResponse<T> {
-  data: T[];
+export function absolutizeMediaUrls(html: string): string {
+  if (!API_URL) return html;
+  return html.replaceAll('src="/media/', `src="${API_URL}/media/`).replaceAll("src='/media/", `src='${API_URL}/media/`);
 }
 
-/**
- * Core Strapi service
- * NOTE: no Node APIs, no process.env, no top-level side effects
- */
-export const strapiService = {
-  async getArticles() {
-  const res = await fetch(
-    `${API_URL}/api/articles?populate=*&sort=publishedAt:desc`
-  );
+export const orbitContentSource: ContentSource = {
+  async getPosts(): Promise<Post[]> {
+    const res = await fetch(apiPath('/api/posts?page=1&pageSize=100'));
+    if (!res.ok) throw new Error(`Failed to fetch posts: ${res.status}`);
+    const json = (await res.json()) as ListResponse;
+    return json.items ?? [];
+  },
 
-  // ❗ 只把真正的网络错误当异常
-  if (!res.ok) {
-    if (res.status === 404 || res.status === 403) {
-      return []; // 当作“暂时没有内容”
-    }
-    throw new Error(`HTTP ${res.status}`);
-  }
-
-  const json = await res.json();
-  return json.data ?? [];
-},
-
-  async getArticleByDocumentId(documentId: string) {
-    const res = await fetch(
-      `${API_URL}/api/articles?filters[documentId][$eq]=${encodeURIComponent(
-        documentId
-      )}&populate=*`
-    );
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch article: ${res.status}`);
-    }
-
-    const json: StrapiResponse<any> = await res.json();
-    return json.data[0] ?? null;
+  async getPostBySlug(slug: string): Promise<Post | null> {
+    const res = await fetch(apiPath(`/api/posts/${encodeURIComponent(slug)}`));
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Failed to fetch post: ${res.status}`);
+    const post = (await res.json()) as Post;
+    return post.html ? { ...post, html: absolutizeMediaUrls(post.html) } : post;
   },
 };
+
+export const contentService = orbitContentSource;
