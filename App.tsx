@@ -2,18 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import ArticleDetail from './pages/ArticleDetail';
-// import Annual2025 from './pages/annual2025';
 
 //
 const App: React.FC = () => {
   const [route, setRoute] = useState(window.location.hash || '#/');
-
-  useEffect(() => {
-    if (window.location.pathname !== '/') {
-      const hash = window.location.hash || '#/';
-      window.location.replace(`/${hash}`);
-    }
-  }, []);
+  // Force hash-router to always run at site root
+  if (window.location.pathname !== '/') {
+    const hash = window.location.hash || '#/';
+    window.location.replace(`/${hash}`);
+  }
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -31,10 +28,6 @@ const App: React.FC = () => {
       return <ArticleDetail slug={slug} />;
     }
 
-    // if (route === '#/annual/2025') {
-    //   return <Annual2025 />;
-    // }
-
     switch (route) {
       case '#/':
       default:
@@ -43,9 +36,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout>
-      {renderRoute()}
-    </Layout>
+    route === '#/' ? renderRoute() : <Layout>{renderRoute()}</Layout>
   );
 };
 
