@@ -233,6 +233,7 @@ const Home: React.FC = () => {
         }
 
         .exhibition-project {
+          display: block;
           position: relative;
           overflow: hidden;
           min-height: 0;
@@ -279,12 +280,14 @@ const Home: React.FC = () => {
         }
 
         .exhibition-frame-a {
+          display: block;
           grid-column: 1 / span 4;
           grid-row: 3;
           border-radius: 18px;
         }
 
         .exhibition-frame-b {
+          display: block;
           grid-column: 5 / span 3;
           grid-row: 3;
           border-radius: 18px;

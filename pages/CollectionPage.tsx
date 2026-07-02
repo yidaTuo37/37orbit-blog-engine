@@ -16,6 +16,26 @@ const surfaceStyle: React.CSSProperties = {
 
 const PageHeader: React.FC<{ eyebrow: string; title: string; body: string }> = ({ eyebrow, title, body }) => (
   <header style={{ marginBottom: 28 }}>
+    <a
+      href="#/"
+      className="mono-font"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        minHeight: 40,
+        padding: '0 14px',
+        marginBottom: 22,
+        border: '1px solid rgba(202, 220, 244, 0.16)',
+        borderRadius: 999,
+        background: 'rgba(18, 28, 43, 0.48)',
+        color: '#9aa9bd',
+        fontSize: 12,
+        letterSpacing: '0.08em',
+        textDecoration: 'none',
+      }}
+    >
+      ← 返回展览墙
+    </a>
     <div className="mono-font" style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9aa9bd' }}>
       {eyebrow}
     </div>
