@@ -1,4 +1,4 @@
-import { Post } from '../types';
+import { HomepageContent, Post } from '../types';
 
 const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
 
@@ -12,6 +12,7 @@ type ListResponse = {
 export interface ContentSource {
   getPosts(): Promise<Post[]>;
   getPostBySlug(slug: string): Promise<Post | null>;
+  getHomepage(): Promise<HomepageContent>;
 }
 
 function apiPath(path: string): string {
@@ -44,6 +45,12 @@ export const orbitContentSource: ContentSource = {
     if (!res.ok) throw new Error(`Failed to fetch post: ${res.status}`);
     const post = (await res.json()) as Post;
     return post.html ? { ...post, html: absolutizeMediaUrls(post.html) } : post;
+  },
+
+  async getHomepage(): Promise<HomepageContent> {
+    const res = await fetch(apiPath('/api/homepage'));
+    if (!res.ok) throw new Error(`Failed to fetch homepage: ${res.status}`);
+    return (await res.json()) as HomepageContent;
   },
 };
 

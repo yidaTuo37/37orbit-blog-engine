@@ -7,12 +7,24 @@ export interface Post {
   summary: string;
   tags: string[];
   category: string;
+  homepage_slot: string;
+  featured: boolean;
+  sort_order: number;
   cover: string;
   status: 'draft' | 'published';
   created_at: string;
   updated_at: string;
   content?: string;
   html?: string;
+}
+
+export interface HomepageContent {
+  mainWork: Post | null;
+  frames: {
+    frameA: Post | null;
+    frameB: Post | null;
+  };
+  wallLabels: Post[];
 }
 
 export interface AnnualArticle {

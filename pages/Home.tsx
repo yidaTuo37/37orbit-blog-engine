@@ -1,6 +1,66 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { contentService, getMediaURL } from '../services/api';
+import { HomepageContent, Post } from '../types';
+
+const fallbackMainWork = {
+  href: '#/projects/main-work',
+  cover: '/annual/2025/20251216-result44.png',
+  title: '一件代表性作品',
+  meta: 'Project / Direction / Interface / 2026',
+};
+
+const fallbackFrames = {
+  frameA: {
+    cover: '/annual/2025/IMG_7318.jpeg',
+    title: '海边那天',
+    meta: 'Frame / 2025',
+  },
+  frameB: {
+    cover: '/annual/2025/09550011.JPG',
+    title: '胶片日常',
+    meta: 'Frame / 2025',
+  },
+};
+
+const fallbackWallLabels = [
+  { title: '我为什么不想把个人站做成动态流', meta: 'Essay / 01', href: '#/diary' },
+  { title: '作品集真正展示的不是结果，而是判断力', meta: 'Essay / 02', href: '#/diary' },
+  { title: '影像为什么还要保留在首页里', meta: 'Note / 03', href: '#/diary' },
+  { title: '长期创作和短期更新其实不是一回事', meta: 'Journal / 04', href: '#/diary' },
+];
+
+function postHref(post: Post | null, fallback: string) {
+  if (!post) return fallback;
+  if (post.category === 'frame') return '#/frames';
+  return `#/article/${post.slug}`;
+}
+
+function postMeta(post: Post | null, fallback: string) {
+  if (!post) return fallback;
+  return `${post.category || 'Post'} / ${new Date(post.updated_at || post.created_at).getFullYear()}`;
+}
 
 const Home: React.FC = () => {
+  const [homepage, setHomepage] = useState<HomepageContent | null>(null);
+
+  useEffect(() => {
+    contentService
+      .getHomepage()
+      .then(setHomepage)
+      .catch(() => setHomepage(null));
+  }, []);
+
+  const mainWork = homepage?.mainWork;
+  const frameA = homepage?.frames.frameA;
+  const frameB = homepage?.frames.frameB;
+  const wallLabels = homepage?.wallLabels.length
+    ? homepage.wallLabels.map((post, index) => ({
+        title: post.title,
+        meta: postMeta(post, `Wall Label / ${index + 1}`),
+        href: `#/article/${post.slug}`,
+      }))
+    : fallbackWallLabels;
+
   return (
     <main className="exhibition-page">
       <style>{`
@@ -468,12 +528,12 @@ const Home: React.FC = () => {
           <section className="exhibition-wall">
             <div className="exhibition-project-wrap">
               <div className="exhibition-tag">Main Work / 01</div>
-              <a href="#/projects/main-work" className="exhibition-surface exhibition-project exhibition-image-fill">
-                <img src="/annual/2025/20251216-result44.png" alt="" />
+              <a href={postHref(mainWork ?? null, fallbackMainWork.href)} className="exhibition-surface exhibition-project exhibition-image-fill">
+                <img src={mainWork?.cover ? getMediaURL(mainWork.cover) : fallbackMainWork.cover} alt="" />
                 <div className="exhibition-overlay-bottom">
                   <div className="exhibition-caption">
-                    <div className="exhibition-caption-title">一件代表性作品</div>
-                    <div className="exhibition-caption-meta">Project / Direction / Interface / 2026</div>
+                    <div className="exhibition-caption-title">{mainWork?.title || fallbackMainWork.title}</div>
+                    <div className="exhibition-caption-meta">{postMeta(mainWork ?? null, fallbackMainWork.meta)}</div>
                   </div>
                 </div>
               </a>
@@ -493,41 +553,31 @@ const Home: React.FC = () => {
                 <span style={{ color: 'var(--violet)' }}>Wall Labels</span>
               </div>
               <div className="exhibition-list">
-                <a href="#/diary">
-                  <div className="exhibition-list-title">我为什么不想把个人站做成动态流</div>
-                  <div className="exhibition-list-meta">Essay / 01</div>
-                </a>
-                <a href="#/diary">
-                  <div className="exhibition-list-title">作品集真正展示的不是结果，而是判断力</div>
-                  <div className="exhibition-list-meta">Essay / 02</div>
-                </a>
-                <a href="#/diary">
-                  <div className="exhibition-list-title">影像为什么还要保留在首页里</div>
-                  <div className="exhibition-list-meta">Note / 03</div>
-                </a>
-                <a href="#/diary">
-                  <div className="exhibition-list-title">长期创作和短期更新其实不是一回事</div>
-                  <div className="exhibition-list-meta">Journal / 04</div>
-                </a>
+                {wallLabels.map((item) => (
+                  <a key={`${item.href}-${item.title}`} href={item.href}>
+                    <div className="exhibition-list-title">{item.title}</div>
+                    <div className="exhibition-list-meta">{item.meta}</div>
+                  </a>
+                ))}
               </div>
             </div>
 
             <a href="#/frames" className="exhibition-surface exhibition-frame-a exhibition-image-fill">
-              <img src="/annual/2025/IMG_7318.jpeg" alt="" />
+              <img src={frameA?.cover ? getMediaURL(frameA.cover) : fallbackFrames.frameA.cover} alt="" />
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
-                  <div className="exhibition-caption-title">海边那天</div>
-                  <div className="exhibition-caption-meta">Frame / 2025</div>
+                  <div className="exhibition-caption-title">{frameA?.title || fallbackFrames.frameA.title}</div>
+                  <div className="exhibition-caption-meta">{postMeta(frameA ?? null, fallbackFrames.frameA.meta)}</div>
                 </div>
               </div>
             </a>
 
             <a href="#/frames" className="exhibition-surface exhibition-frame-b exhibition-image-fill">
-              <img src="/annual/2025/09550011.JPG" alt="" />
+              <img src={frameB?.cover ? getMediaURL(frameB.cover) : fallbackFrames.frameB.cover} alt="" />
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
-                  <div className="exhibition-caption-title">胶片日常</div>
-                  <div className="exhibition-caption-meta">Frame / 2025</div>
+                  <div className="exhibition-caption-title">{frameB?.title || fallbackFrames.frameB.title}</div>
+                  <div className="exhibition-caption-meta">{postMeta(frameB ?? null, fallbackFrames.frameB.meta)}</div>
                 </div>
               </div>
             </a>
