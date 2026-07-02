@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import ArticleDetail from './pages/ArticleDetail';
+import { DiaryPage, FramesPage, ProjectDetailPage, ProjectsPage } from './pages/CollectionPage';
 
 //
 const App: React.FC = () => {
@@ -28,7 +29,18 @@ const App: React.FC = () => {
       return <ArticleDetail slug={slug} />;
     }
 
+    if (route.startsWith('#/projects/')) {
+      const id = route.replace('#/projects/', '');
+      return <ProjectDetailPage id={id} />;
+    }
+
     switch (route) {
+      case '#/projects':
+        return <ProjectsPage />;
+      case '#/frames':
+        return <FramesPage />;
+      case '#/diary':
+        return <DiaryPage />;
       case '#/':
       default:
         return <Home />;

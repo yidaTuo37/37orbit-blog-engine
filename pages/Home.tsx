@@ -112,6 +112,13 @@ const Home: React.FC = () => {
           border-radius: 999px;
           padding: 8px 12px;
           background: rgba(255,255,255,0.02);
+          transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .exhibition-nav a:hover {
+          border-color: var(--line-strong);
+          color: var(--text);
+          background: rgba(255,255,255,0.045);
         }
 
         .exhibition-hero {
@@ -437,7 +444,9 @@ const Home: React.FC = () => {
         <div className="exhibition-topbar">
           <div className="exhibition-brand">37ORBIT</div>
           <div className="exhibition-nav">
-            <span>展览墙</span>
+            <a href="#/projects">项目</a>
+            <a href="#/frames">影像</a>
+            <a href="#/diary">日记</a>
           </div>
         </div>
 
@@ -456,7 +465,7 @@ const Home: React.FC = () => {
           <section className="exhibition-wall">
             <div className="exhibition-project-wrap">
               <div className="exhibition-tag">Main Work / 01</div>
-              <div className="exhibition-surface exhibition-project exhibition-image-fill">
+              <a href="#/projects/main-work" className="exhibition-surface exhibition-project exhibition-image-fill">
                 <img src="/annual/2025/20251216-result44.png" alt="" />
                 <div className="exhibition-overlay-bottom">
                   <div className="exhibition-caption">
@@ -464,7 +473,7 @@ const Home: React.FC = () => {
                     <div className="exhibition-caption-meta">Project / Direction / Interface / 2026</div>
                   </div>
                 </div>
-              </div>
+              </a>
             </div>
 
             <div className="exhibition-surface exhibition-side-note">
@@ -481,26 +490,26 @@ const Home: React.FC = () => {
                 <span style={{ color: 'var(--violet)' }}>Wall Labels</span>
               </div>
               <div className="exhibition-list">
-                <a href="#">
+                <a href="#/diary">
                   <div className="exhibition-list-title">我为什么不想把个人站做成动态流</div>
                   <div className="exhibition-list-meta">Essay / 01</div>
                 </a>
-                <a href="#">
+                <a href="#/diary">
                   <div className="exhibition-list-title">作品集真正展示的不是结果，而是判断力</div>
                   <div className="exhibition-list-meta">Essay / 02</div>
                 </a>
-                <a href="#">
+                <a href="#/diary">
                   <div className="exhibition-list-title">影像为什么还要保留在首页里</div>
                   <div className="exhibition-list-meta">Note / 03</div>
                 </a>
-                <a href="#">
+                <a href="#/diary">
                   <div className="exhibition-list-title">长期创作和短期更新其实不是一回事</div>
                   <div className="exhibition-list-meta">Journal / 04</div>
                 </a>
               </div>
             </div>
 
-            <div className="exhibition-surface exhibition-frame-a exhibition-image-fill">
+            <a href="#/frames" className="exhibition-surface exhibition-frame-a exhibition-image-fill">
               <img src="/annual/2025/IMG_7318.jpeg" alt="" />
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
@@ -508,9 +517,9 @@ const Home: React.FC = () => {
                   <div className="exhibition-caption-meta">Frame / 2025</div>
                 </div>
               </div>
-            </div>
+            </a>
 
-            <div className="exhibition-surface exhibition-frame-b exhibition-image-fill">
+            <a href="#/frames" className="exhibition-surface exhibition-frame-b exhibition-image-fill">
               <img src="/annual/2025/09550011.JPG" alt="" />
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
@@ -518,7 +527,7 @@ const Home: React.FC = () => {
                   <div className="exhibition-caption-meta">Frame / 2025</div>
                 </div>
               </div>
-            </div>
+            </a>
 
             <div className="exhibition-surface exhibition-frame-c">
               <div className="exhibition-label-row">
