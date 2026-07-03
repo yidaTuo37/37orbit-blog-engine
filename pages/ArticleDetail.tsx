@@ -25,6 +25,7 @@ const ArticleDetail: React.FC<Props> = ({ slug }) => {
   const normalizedSlug = decodeURIComponent(slug.split('?')[0] || '').replace(/\/+$/, '');
 
   useEffect(() => {
+    let active = true;
     if (!normalizedSlug) {
       setError('Invalid article slug.');
       setLoading(false);
@@ -33,18 +34,33 @@ const ArticleDetail: React.FC<Props> = ({ slug }) => {
 
     const loadArticle = async () => {
       try {
+        setLoading(true);
         const data = await contentService.getPostBySlug(normalizedSlug);
         if (!data) throw new Error('Article not found');
-        setArticle(data);
+        if (active) {
+          setArticle(data);
+          setError(null);
+        }
       } catch (err) {
         console.error('Failed to load article:', err);
-        setError('Transmission failed.');
+        if (active) setError('Transmission failed.');
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
+    const reloadWhenVisible = () => {
+      if (document.visibilityState === 'visible') void loadArticle();
+    };
 
-    loadArticle();
+    void loadArticle();
+    window.addEventListener('focus', loadArticle);
+    document.addEventListener('visibilitychange', reloadWhenVisible);
+
+    return () => {
+      active = false;
+      window.removeEventListener('focus', loadArticle);
+      document.removeEventListener('visibilitychange', reloadWhenVisible);
+    };
   }, [normalizedSlug]);
 
   useEffect(() => {

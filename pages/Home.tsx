@@ -2,32 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
 import { HomepageContent, Post } from '../types';
 
-const fallbackMainWork = {
-  href: '#/projects/main-work',
-  cover: '/annual/2025/20251216-result44.png',
-  title: '一件代表性作品',
-  meta: 'Project / Direction / Interface / 2026',
+const emptyMainWork = {
+  href: '#/projects',
+  title: '后台未设置主作品',
+  meta: 'Set homepage_slot: main-work',
 };
 
-const fallbackFrames = {
+const emptyFrames = {
   frameA: {
-    cover: '/annual/2025/IMG_7318.jpeg',
-    title: '海边那天',
-    meta: 'Frame / 2025',
+    title: '后台未设置影像 A',
+    meta: 'Set homepage_slot: frame-a',
   },
   frameB: {
-    cover: '/annual/2025/09550011.JPG',
-    title: '胶片日常',
-    meta: 'Frame / 2025',
+    title: '后台未设置影像 B',
+    meta: 'Set homepage_slot: frame-b',
   },
 };
-
-const fallbackWallLabels = [
-  { title: '我为什么不想把个人站做成动态流', meta: 'Essay / 01', href: '#/diary' },
-  { title: '作品集真正展示的不是结果，而是判断力', meta: 'Essay / 02', href: '#/diary' },
-  { title: '影像为什么还要保留在首页里', meta: 'Note / 03', href: '#/diary' },
-  { title: '长期创作和短期更新其实不是一回事', meta: 'Journal / 04', href: '#/diary' },
-];
 
 function postHref(post: Post | null, fallback: string) {
   if (!post) return fallback;
@@ -44,22 +34,45 @@ const Home: React.FC = () => {
   const [homepage, setHomepage] = useState<HomepageContent | null>(null);
 
   useEffect(() => {
-    contentService
-      .getHomepage()
-      .then(setHomepage)
-      .catch(() => setHomepage(null));
+    let active = true;
+    const loadHomepage = () => {
+      contentService
+        .getHomepage()
+        .then((data) => {
+          if (active) setHomepage(data);
+        })
+        .catch(() => {
+          if (active) setHomepage(null);
+        });
+    };
+    const reloadWhenVisible = () => {
+      if (document.visibilityState === 'visible') loadHomepage();
+    };
+
+    loadHomepage();
+    window.addEventListener('focus', loadHomepage);
+    document.addEventListener('visibilitychange', reloadWhenVisible);
+
+    return () => {
+      active = false;
+      window.removeEventListener('focus', loadHomepage);
+      document.removeEventListener('visibilitychange', reloadWhenVisible);
+    };
   }, []);
 
   const mainWork = homepage?.mainWork;
   const frameA = homepage?.frames.frameA;
   const frameB = homepage?.frames.frameB;
+  const mainWorkCover = getMediaURL(mainWork?.cover);
+  const frameACover = getMediaURL(frameA?.cover);
+  const frameBCover = getMediaURL(frameB?.cover);
   const wallLabels = homepage?.wallLabels.length
     ? homepage.wallLabels.map((post, index) => ({
         title: post.title,
         meta: postMeta(post, `Wall Label / ${index + 1}`),
         href: `#/article/${post.slug}`,
       }))
-    : fallbackWallLabels;
+    : [];
 
   return (
     <main className="exhibition-page">
@@ -256,6 +269,25 @@ const Home: React.FC = () => {
         .exhibition-image-fill {
           position: relative;
           overflow: hidden;
+        }
+
+        .exhibition-empty-art {
+          display: flex;
+          height: 100%;
+          min-height: 180px;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          color: rgba(238, 243, 248, 0.46);
+          font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+          font-size: 12px;
+          letter-spacing: 0.12em;
+          text-align: center;
+          text-transform: uppercase;
+          background:
+            linear-gradient(135deg, rgba(255,255,255,0.06), transparent 42%),
+            radial-gradient(circle at 50% 100%, rgba(239,141,105,0.16), transparent 42%),
+            rgba(255,255,255,0.025);
         }
 
         .exhibition-image-fill > img {
@@ -528,12 +560,16 @@ const Home: React.FC = () => {
           <section className="exhibition-wall">
             <div className="exhibition-project-wrap">
               <div className="exhibition-tag">Main Work / 01</div>
-              <a href={postHref(mainWork ?? null, fallbackMainWork.href)} className="exhibition-surface exhibition-project exhibition-image-fill">
-                <img src={mainWork?.cover ? getMediaURL(mainWork.cover) : fallbackMainWork.cover} alt="" />
+              <a href={postHref(mainWork ?? null, emptyMainWork.href)} className="exhibition-surface exhibition-project exhibition-image-fill">
+                {mainWorkCover ? (
+                  <img src={mainWorkCover} alt={mainWork?.title || emptyMainWork.title} />
+                ) : (
+                  <div className="exhibition-empty-art">Configure main-work in CMS</div>
+                )}
                 <div className="exhibition-overlay-bottom">
                   <div className="exhibition-caption">
-                    <div className="exhibition-caption-title">{mainWork?.title || fallbackMainWork.title}</div>
-                    <div className="exhibition-caption-meta">{postMeta(mainWork ?? null, fallbackMainWork.meta)}</div>
+                    <div className="exhibition-caption-title">{mainWork?.title || emptyMainWork.title}</div>
+                    <div className="exhibition-caption-meta">{postMeta(mainWork ?? null, emptyMainWork.meta)}</div>
                   </div>
                 </div>
               </a>
@@ -553,31 +589,46 @@ const Home: React.FC = () => {
                 <span style={{ color: 'var(--violet)' }}>Wall Labels</span>
               </div>
               <div className="exhibition-list">
-                {wallLabels.map((item) => (
-                  <a key={`${item.href}-${item.title}`} href={item.href}>
-                    <div className="exhibition-list-title">{item.title}</div>
-                    <div className="exhibition-list-meta">{item.meta}</div>
+                {wallLabels.length ? (
+                  wallLabels.map((item) => (
+                    <a key={`${item.href}-${item.title}`} href={item.href}>
+                      <div className="exhibition-list-title">{item.title}</div>
+                      <div className="exhibition-list-meta">{item.meta}</div>
+                    </a>
+                  ))
+                ) : (
+                  <a href="#/diary">
+                    <div className="exhibition-list-title">后台未设置墙签文字</div>
+                    <div className="exhibition-list-meta">Set homepage_slot: wall-label</div>
                   </a>
-                ))}
+                )}
               </div>
             </div>
 
             <a href="#/frames" className="exhibition-surface exhibition-frame-a exhibition-image-fill">
-              <img src={frameA?.cover ? getMediaURL(frameA.cover) : fallbackFrames.frameA.cover} alt="" />
+              {frameACover ? (
+                <img src={frameACover} alt={frameA?.title || emptyFrames.frameA.title} />
+              ) : (
+                <div className="exhibition-empty-art">Configure frame-a in CMS</div>
+              )}
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
-                  <div className="exhibition-caption-title">{frameA?.title || fallbackFrames.frameA.title}</div>
-                  <div className="exhibition-caption-meta">{postMeta(frameA ?? null, fallbackFrames.frameA.meta)}</div>
+                  <div className="exhibition-caption-title">{frameA?.title || emptyFrames.frameA.title}</div>
+                  <div className="exhibition-caption-meta">{postMeta(frameA ?? null, emptyFrames.frameA.meta)}</div>
                 </div>
               </div>
             </a>
 
             <a href="#/frames" className="exhibition-surface exhibition-frame-b exhibition-image-fill">
-              <img src={frameB?.cover ? getMediaURL(frameB.cover) : fallbackFrames.frameB.cover} alt="" />
+              {frameBCover ? (
+                <img src={frameBCover} alt={frameB?.title || emptyFrames.frameB.title} />
+              ) : (
+                <div className="exhibition-empty-art">Configure frame-b in CMS</div>
+              )}
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
-                  <div className="exhibition-caption-title">{frameB?.title || fallbackFrames.frameB.title}</div>
-                  <div className="exhibition-caption-meta">{postMeta(frameB ?? null, fallbackFrames.frameB.meta)}</div>
+                  <div className="exhibition-caption-title">{frameB?.title || emptyFrames.frameB.title}</div>
+                  <div className="exhibition-caption-meta">{postMeta(frameB ?? null, emptyFrames.frameB.meta)}</div>
                 </div>
               </div>
             </a>

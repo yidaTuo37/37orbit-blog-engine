@@ -10,7 +10,12 @@ type ListResponse = {
 };
 
 export interface ContentSource {
-  getPosts(): Promise<Post[]>;
+  getPosts(options?: {
+    category?: string;
+    homepage_slot?: string;
+    featured?: boolean;
+    pageSize?: number;
+  }): Promise<Post[]>;
   getPostBySlug(slug: string): Promise<Post | null>;
   getHomepage(): Promise<HomepageContent>;
 }
@@ -32,15 +37,23 @@ export function absolutizeMediaUrls(html: string): string {
 }
 
 export const orbitContentSource: ContentSource = {
-  async getPosts(): Promise<Post[]> {
-    const res = await fetch(apiPath('/api/posts?page=1&pageSize=100'));
+  async getPosts(options = {}): Promise<Post[]> {
+    const params = new URLSearchParams({
+      page: '1',
+      pageSize: String(options.pageSize ?? 100),
+    });
+    if (options.category) params.set('category', options.category);
+    if (options.homepage_slot) params.set('homepage_slot', options.homepage_slot);
+    if (options.featured !== undefined) params.set('featured', String(options.featured));
+
+    const res = await fetch(apiPath(`/api/posts?${params.toString()}`), { cache: 'no-store' });
     if (!res.ok) throw new Error(`Failed to fetch posts: ${res.status}`);
     const json = (await res.json()) as ListResponse;
     return json.items ?? [];
   },
 
   async getPostBySlug(slug: string): Promise<Post | null> {
-    const res = await fetch(apiPath(`/api/posts/${encodeURIComponent(slug)}`));
+    const res = await fetch(apiPath(`/api/posts/${encodeURIComponent(slug)}`), { cache: 'no-store' });
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`Failed to fetch post: ${res.status}`);
     const post = (await res.json()) as Post;
@@ -48,7 +61,7 @@ export const orbitContentSource: ContentSource = {
   },
 
   async getHomepage(): Promise<HomepageContent> {
-    const res = await fetch(apiPath('/api/homepage'));
+    const res = await fetch(apiPath('/api/homepage'), { cache: 'no-store' });
     if (!res.ok) throw new Error(`Failed to fetch homepage: ${res.status}`);
     return (await res.json()) as HomepageContent;
   },

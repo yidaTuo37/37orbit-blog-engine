@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { exhibitionFrames, exhibitionProjects, wallLabels } from '../data/exhibition';
-import { contentService } from '../services/api';
+import { contentService, getMediaURL } from '../services/api';
 import { Post } from '../types';
+import ArticleDetail from './ArticleDetail';
 
 const pageStyle: React.CSSProperties = {
   minHeight: 'calc(100dvh - 80px)',
@@ -36,166 +36,207 @@ const PageHeader: React.FC<{ eyebrow: string; title: string; body: string }> = (
     >
       ← 返回展览墙
     </a>
-    <div className="mono-font" style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9aa9bd' }}>
+    <div
+      className="mono-font"
+      style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9aa9bd' }}
+    >
       {eyebrow}
     </div>
     <h1 className="serif-font" style={{ margin: '10px 0 0', fontSize: 'clamp(42px, 7vw, 88px)', lineHeight: 0.95 }}>
       {title}
     </h1>
-    <p style={{ maxWidth: 720, marginTop: 16, color: '#9aa9bd', lineHeight: 1.8 }}>
-      {body}
-    </p>
+    <p style={{ maxWidth: 720, marginTop: 16, color: '#9aa9bd', lineHeight: 1.8 }}>{body}</p>
   </header>
 );
 
-export const ProjectsPage: React.FC = () => (
-  <main style={pageStyle}>
-    <PageHeader
-      eyebrow="Projects"
-      title="项目索引"
-      body="这里放从首页中心展件延伸出来的项目。首页负责建立第一眼，项目页负责交代作品本身。"
-    />
-    <div className="grid gap-4 md:grid-cols-3">
-      {exhibitionProjects.map((project) => (
-        <a
-          key={project.id}
-          href={`#/projects/${project.id}`}
-          className="group overflow-hidden rounded-3xl"
-          style={surfaceStyle}
-        >
-          <div style={{ aspectRatio: '16 / 10', overflow: 'hidden' }}>
-            <img
-              src={project.cover}
-              alt={project.title}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            />
-          </div>
-          <div style={{ padding: 18 }}>
-            <div className="serif-font" style={{ fontSize: 24, lineHeight: 1.15 }}>
-              {project.title}
-            </div>
-            <div className="mono-font" style={{ marginTop: 8, fontSize: 12, color: '#9aa9bd' }}>
-              {project.meta}
-            </div>
-            <p style={{ marginTop: 14, color: '#9aa9bd', lineHeight: 1.7, fontSize: 14 }}>
-              {project.summary}
-            </p>
-          </div>
-        </a>
-      ))}
-    </div>
-  </main>
+function postMeta(post: Post): string {
+  const year = new Date(post.updated_at || post.created_at).getFullYear();
+  return `${post.category || 'post'} / ${year}`;
+}
+
+function sortPosts(items: Post[]): Post[] {
+  return [...items].sort((a, b) => {
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
+}
+
+function useCategoryPosts(categories: string[]) {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const categoryKey = categories.join('|');
+
+  useEffect(() => {
+    let active = true;
+    const loadPosts = () => {
+      setLoading(true);
+      Promise.all(categories.map((category) => contentService.getPosts({ category })))
+        .then((groups) => {
+          if (active) setPosts(sortPosts(groups.flat()));
+        })
+        .catch(() => {
+          if (active) setPosts([]);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    };
+    const reloadWhenVisible = () => {
+      if (document.visibilityState === 'visible') loadPosts();
+    };
+
+    loadPosts();
+    window.addEventListener('focus', loadPosts);
+    document.addEventListener('visibilitychange', reloadWhenVisible);
+
+    return () => {
+      active = false;
+      window.removeEventListener('focus', loadPosts);
+      document.removeEventListener('visibilitychange', reloadWhenVisible);
+    };
+  }, [categoryKey]);
+
+  return { posts, loading };
+}
+
+const EmptyState: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="rounded-3xl p-6 text-sm leading-7" style={{ ...surfaceStyle, color: '#9aa9bd' }}>
+    {children}
+  </div>
 );
 
-export const ProjectDetailPage: React.FC<{ id: string }> = ({ id }) => {
-  const project = exhibitionProjects.find((item) => item.id === id) ?? exhibitionProjects[0];
+const ProjectCard: React.FC<{ post: Post }> = ({ post }) => {
+  const cover = getMediaURL(post.cover);
+
+  return (
+    <a href={`#/projects/${post.slug}`} className="group overflow-hidden rounded-3xl" style={surfaceStyle}>
+      <div style={{ aspectRatio: '16 / 10', overflow: 'hidden' }}>
+        {cover ? (
+          <img
+            src={cover}
+            alt={post.title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-white/5 text-xs uppercase tracking-[0.18em] text-white/35">
+            No cover
+          </div>
+        )}
+      </div>
+      <div style={{ padding: 18 }}>
+        <div className="serif-font" style={{ fontSize: 24, lineHeight: 1.15 }}>
+          {post.title}
+        </div>
+        <div className="mono-font" style={{ marginTop: 8, fontSize: 12, color: '#9aa9bd' }}>
+          {postMeta(post)}
+        </div>
+        {post.summary && (
+          <p style={{ marginTop: 14, color: '#9aa9bd', lineHeight: 1.7, fontSize: 14 }}>{post.summary}</p>
+        )}
+      </div>
+    </a>
+  );
+};
+
+export const ProjectsPage: React.FC = () => {
+  const { posts, loading } = useCategoryPosts(['project']);
 
   return (
     <main style={pageStyle}>
       <PageHeader
-        eyebrow={project.meta}
-        title={project.title}
-        body={project.summary}
+        eyebrow="Projects"
+        title="项目索引"
+        body="这里放从首页中心展件延伸出来的项目。首页负责建立第一眼，项目页负责交代作品本身。"
       />
-      <div className="overflow-hidden rounded-[2rem]" style={surfaceStyle}>
-        <div style={{ aspectRatio: '16 / 8' }}>
-          <img src={project.cover} alt={project.title} className="h-full w-full object-cover" />
+      {loading && <EmptyState>读取项目中。</EmptyState>}
+      {!loading && posts.length === 0 && (
+        <EmptyState>后台还没有已发布的 project。发布文章后，把内容类型设为 project。</EmptyState>
+      )}
+      {!loading && posts.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {posts.map((post) => (
+            <ProjectCard key={post.slug} post={post} />
+          ))}
         </div>
-        <div className="grid gap-6 p-6 md:grid-cols-[1fr_0.7fr] md:p-8">
-          <div className="serif-font" style={{ fontSize: 34, lineHeight: 1.08 }}>
-            这个页面之后可以继续补充项目背景、角色、过程和最终结果。
-          </div>
-          <div style={{ color: '#9aa9bd', lineHeight: 1.8 }}>
-            现在先保留为作品详情入口，避免首页承担过多说明文字。等项目内容确定后，再把这里扩展成完整项目页。
-          </div>
-        </div>
-      </div>
+      )}
     </main>
   );
 };
 
-export const FramesPage: React.FC = () => (
-  <main style={pageStyle}>
-    <PageHeader
-      eyebrow="Frames"
-      title="影像索引"
-      body="影像不是被压成标题的文字列表。这里保留图片本身的观看空间。"
-    />
-    <div className="grid gap-4 md:grid-cols-2">
-      {exhibitionFrames.map((frame) => (
-        <article key={frame.id} className="overflow-hidden rounded-3xl" style={surfaceStyle}>
-          <div style={{ aspectRatio: '16 / 10' }}>
-            <img src={frame.cover} alt={frame.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-          </div>
-          <div style={{ padding: 18 }}>
-            <div className="serif-font" style={{ fontSize: 24 }}>
-              {frame.title}
-            </div>
-            <div className="mono-font" style={{ marginTop: 6, fontSize: 12, color: '#9aa9bd' }}>
-              {frame.meta}
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
-  </main>
-);
+export const ProjectDetailPage: React.FC<{ id: string }> = ({ id }) => <ArticleDetail slug={id} />;
 
-export const DiaryPage: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    contentService
-      .getPosts()
-      .then((items) => setPosts(items))
-      .catch(() => setPosts([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const fallbackItems = wallLabels.map((item, index) => ({
-    id: index,
-    title: item.title,
-    meta: item.meta,
-    href: '#/diary',
-  }));
-
-  const items = posts.length
-    ? posts.map((post) => ({
-        id: post.id,
-        title: post.title,
-        meta: post.category || 'Diary',
-        href: `#/article/${post.slug}`,
-      }))
-    : fallbackItems;
+export const FramesPage: React.FC = () => {
+  const { posts, loading } = useCategoryPosts(['frame']);
 
   return (
     <main style={pageStyle}>
-      <PageHeader
-        eyebrow="Diary"
-        title="日记索引"
-        body="日记只需要标题和一点点时间感，不需要在首页展开正文。"
-      />
+      <PageHeader eyebrow="Frames" title="影像索引" body="影像不是被压成标题的文字列表。这里保留图片本身的观看空间。" />
+      {loading && <EmptyState>读取影像中。</EmptyState>}
+      {!loading && posts.length === 0 && (
+        <EmptyState>后台还没有已发布的 frame。发布文章后，把内容类型设为 frame，并设置封面图。</EmptyState>
+      )}
+      {!loading && posts.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {posts.map((post) => {
+            const cover = getMediaURL(post.cover);
+            return (
+              <a key={post.slug} href={`#/article/${post.slug}`} className="overflow-hidden rounded-3xl" style={surfaceStyle}>
+                <div style={{ aspectRatio: '16 / 10' }}>
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt={post.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-white/5 text-xs uppercase tracking-[0.18em] text-white/35">
+                      No cover
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: 18 }}>
+                  <div className="serif-font" style={{ fontSize: 24 }}>
+                    {post.title}
+                  </div>
+                  <div className="mono-font" style={{ marginTop: 6, fontSize: 12, color: '#9aa9bd' }}>
+                    {postMeta(post)}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
+    </main>
+  );
+};
+
+export const DiaryPage: React.FC = () => {
+  const { posts, loading } = useCategoryPosts(['diary', 'writing']);
+
+  return (
+    <main style={pageStyle}>
+      <PageHeader eyebrow="Diary" title="日记索引" body="日记只需要标题和一点点时间感，不需要在首页展开正文。" />
       <div className="rounded-3xl p-5 md:p-7" style={surfaceStyle}>
-        {loading && (
-          <div style={{ color: '#9aa9bd' }}>读取中。</div>
+        {loading && <div style={{ color: '#9aa9bd' }}>读取中。</div>}
+        {!loading && posts.length === 0 && (
+          <div style={{ color: '#9aa9bd' }}>后台还没有已发布的 diary / writing。</div>
         )}
-        {!loading && items.map((item) => (
-          <a
-            key={item.id}
-            href={item.href}
-            className="block border-b border-white/10 py-4 last:border-b-0"
-          >
-            <div className="serif-font" style={{ fontSize: 26, lineHeight: 1.25 }}>
-              {item.title}
-            </div>
-            <div className="mono-font" style={{ marginTop: 8, fontSize: 12, color: '#9aa9bd' }}>
-              {item.meta}
-            </div>
-          </a>
-        ))}
+        {!loading &&
+          posts.map((post) => (
+            <a key={post.slug} href={`#/article/${post.slug}`} className="block border-b border-white/10 py-4 last:border-b-0">
+              <div className="serif-font" style={{ fontSize: 26, lineHeight: 1.25 }}>
+                {post.title}
+              </div>
+              <div className="mono-font" style={{ marginTop: 8, fontSize: 12, color: '#9aa9bd' }}>
+                {postMeta(post)}
+              </div>
+            </a>
+          ))}
       </div>
     </main>
   );
