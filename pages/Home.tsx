@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
-import { HomepageContent, Post } from '../types';
+import { HomepageContent, Post, SiteSettings } from '../types';
+
+const defaultSettings: SiteSettings = {
+  home_eyebrow: 'Exhibition Wall',
+  home_title: '先让人看到中心展品，\n再读旁边的解释文字。',
+  home_intro:
+    '这一版不再平均对待栏目。主项目像被挂在墙面中央，写作退成展签，影像变成侧面证据。重点不是模块齐不齐，而是视线有没有被正确引导。',
+  statement_label: 'Statement',
+  statement_body: '项目是主展件。\n文字是墙签。\n影像是现场感。',
+  wall_labels_label: 'Wall Labels',
+  curator_label: 'Curator Note',
+  curator_body: '不是把项目、写作、影像做成三块平权模块，而是像策展一样先确定主轴，再安排旁证。',
+  curator_meta: '37ORBIT / Homepage Study / v2',
+};
 
 const emptyMainWork = {
   href: '#/projects',
@@ -32,14 +45,16 @@ function postMeta(post: Post | null, fallback: string) {
 
 const Home: React.FC = () => {
   const [homepage, setHomepage] = useState<HomepageContent | null>(null);
+  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
 
   useEffect(() => {
     let active = true;
     const loadHomepage = () => {
-      contentService
-        .getHomepage()
-        .then((data) => {
-          if (active) setHomepage(data);
+      Promise.all([contentService.getHomepage(), contentService.getSettings()])
+        .then(([homepageData, settingsData]) => {
+          if (!active) return;
+          setHomepage(homepageData);
+          setSettings({ ...defaultSettings, ...settingsData });
         })
         .catch(() => {
           if (active) setHomepage(null);
@@ -546,13 +561,16 @@ const Home: React.FC = () => {
         </div>
 
         <section className="exhibition-hero">
-          <div className="exhibition-eyebrow">Exhibition Wall</div>
+          <div className="exhibition-eyebrow">{settings.home_eyebrow}</div>
           <h1>
-            先让人看到中心展品，<br />再读旁边的解释文字。
+            {settings.home_title.split('\n').map((line, index) => (
+              <React.Fragment key={`${line}-${index}`}>
+                {line}
+                {index < settings.home_title.split('\n').length - 1 && <br />}
+              </React.Fragment>
+            ))}
           </h1>
-          <p>
-            这一版不再平均对待栏目。主项目像被挂在墙面中央，写作退成展签，影像变成侧面证据。重点不是模块齐不齐，而是视线有没有被正确引导。
-          </p>
+          <p>{settings.home_intro}</p>
         </section>
 
         <section className="exhibition-stage">
@@ -577,16 +595,21 @@ const Home: React.FC = () => {
 
             <div className="exhibition-surface exhibition-side-note">
               <div className="exhibition-label-row">
-                <span style={{ color: 'var(--orange)' }}>Statement</span>
+                <span style={{ color: 'var(--orange)' }}>{settings.statement_label}</span>
               </div>
               <div className="exhibition-manifesto">
-                项目是主展件。<br />文字是墙签。<br />影像是现场感。
+                {settings.statement_body.split('\n').map((line, index) => (
+                  <React.Fragment key={`${line}-${index}`}>
+                    {line}
+                    {index < settings.statement_body.split('\n').length - 1 && <br />}
+                  </React.Fragment>
+                ))}
               </div>
             </div>
 
             <div className="exhibition-surface exhibition-writing">
               <div className="exhibition-label-row">
-                <span style={{ color: 'var(--violet)' }}>Wall Labels</span>
+                <span style={{ color: 'var(--violet)' }}>{settings.wall_labels_label}</span>
               </div>
               <div className="exhibition-list">
                 {wallLabels.length ? (
@@ -635,13 +658,13 @@ const Home: React.FC = () => {
 
             <div className="exhibition-surface exhibition-frame-c">
               <div className="exhibition-label-row">
-                <span style={{ color: 'var(--green)' }}>Curator Note</span>
+                <span style={{ color: 'var(--green)' }}>{settings.curator_label}</span>
               </div>
               <div className="exhibition-curator-copy">
-                不是把项目、写作、影像做成三块平权模块，而是像策展一样先确定主轴，再安排旁证。
+                {settings.curator_body}
               </div>
               <div className="exhibition-muted" style={{ marginTop: 18 }}>
-                37ORBIT / Homepage Study / v2
+                {settings.curator_meta}
               </div>
             </div>
           </section>

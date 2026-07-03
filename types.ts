@@ -27,6 +27,18 @@ export interface HomepageContent {
   wallLabels: Post[];
 }
 
+export interface SiteSettings {
+  home_eyebrow: string;
+  home_title: string;
+  home_intro: string;
+  statement_label: string;
+  statement_body: string;
+  wall_labels_label: string;
+  curator_label: string;
+  curator_body: string;
+  curator_meta: string;
+}
+
 export interface AnnualArticle {
   id: number;
   date: string;      // e.g. '2024-01-12'

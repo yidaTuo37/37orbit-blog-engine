@@ -1,4 +1,4 @@
-import { HomepageContent, Post } from '../types';
+import { HomepageContent, Post, SiteSettings } from '../types';
 
 const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
 const STATIC_BASE = (import.meta.env.VITE_CONTENT_STATIC_BASE || '/cms').replace(/\/+$/, '');
@@ -19,6 +19,7 @@ export interface ContentSource {
   }): Promise<Post[]>;
   getPostBySlug(slug: string): Promise<Post | null>;
   getHomepage(): Promise<HomepageContent>;
+  getSettings(): Promise<SiteSettings>;
 }
 
 function apiPath(path: string): string {
@@ -66,6 +67,12 @@ export const orbitContentSource: ContentSource = {
     if (!res.ok) throw new Error(`Failed to fetch homepage: ${res.status}`);
     return (await res.json()) as HomepageContent;
   },
+
+  async getSettings(): Promise<SiteSettings> {
+    const res = await fetch(apiPath('/api/settings'), { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch settings: ${res.status}`);
+    return (await res.json()) as SiteSettings;
+  },
 };
 
 export const staticContentSource: ContentSource = {
@@ -91,6 +98,12 @@ export const staticContentSource: ContentSource = {
     const res = await fetch(`${STATIC_BASE}/homepage.json`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`Failed to fetch static homepage: ${res.status}`);
     return (await res.json()) as HomepageContent;
+  },
+
+  async getSettings(): Promise<SiteSettings> {
+    const res = await fetch(`${STATIC_BASE}/settings.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch static settings: ${res.status}`);
+    return (await res.json()) as SiteSettings;
   },
 };
 
