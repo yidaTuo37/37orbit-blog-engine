@@ -152,7 +152,7 @@ export const ProjectsPage: React.FC = () => {
       />
       {loading && <EmptyState>加载地形中。</EmptyState>}
       {!loading && posts.length === 0 && (
-        <EmptyState>商家正在备餐。</EmptyState>
+        <EmptyState>我建议你喝摩卡。</EmptyState>
       )}
       {!loading && posts.length > 0 && (
         <div className="grid gap-4 md:grid-cols-3">
