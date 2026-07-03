@@ -1,9 +1,0 @@
-
-{
-  "name": "37ORBIT Blog Engine",
-  "description": "A high-performance blog frontend for 37ORBIT.com, built with React and Strapi v5 integration. Features a deep space theme with signature #FF791B orange accents.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
-}

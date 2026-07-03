@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Post } from '../types';
 import { getMediaURL } from '../services/api';
@@ -10,9 +9,10 @@ interface Props {
 const ArticleCard: React.FC<Props> = ({ article }) => {
   const imageUrl = getMediaURL(article.cover);
   return (
-    <a href={`#/article/${article.slug}`} 
-    className="article-card group">
-
+    <a
+      href={`#/article/${article.slug}`}
+      className="group block overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-[#FF791B]/40 hover:bg-white/[0.055]"
+    >
       <div className="aspect-[16/10] overflow-hidden relative">
         {imageUrl ? (
           <img

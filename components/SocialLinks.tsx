@@ -42,7 +42,7 @@ const SocialLinks: React.FC = () => {
 
       {/* GitHub */}
       <a
-        href="https://github.com/Erics37"
+        href="https://github.com/yidaTuo37"
         target="_blank"
         rel="noopener noreferrer"
         className="group p-3 bg-white/5 rounded-full hover:bg-[#FF791B]/20 transition-all"

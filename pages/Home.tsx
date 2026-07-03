@@ -17,18 +17,18 @@ const defaultSettings: SiteSettings = {
 
 const emptyMainWork = {
   href: '#/projects',
-  title: '后台未设置主作品',
-  meta: 'Set homepage_slot: main-work',
+  title: '商家正在备餐',
+  meta: '',
 };
 
 const emptyFrames = {
   frameA: {
-    title: '后台未设置影像 A',
-    meta: 'Set homepage_slot: frame-a',
+    title: '商家正在备餐',
+    meta: '',
   },
   frameB: {
-    title: '后台未设置影像 B',
-    meta: 'Set homepage_slot: frame-b',
+    title: '商家正在备餐',
+    meta: '',
   },
 };
 
@@ -43,9 +43,19 @@ function postMeta(post: Post | null, fallback: string) {
   return `${post.category || 'Post'} / ${new Date(post.updated_at || post.created_at).getFullYear()}`;
 }
 
+function renderLines(value: string) {
+  const lines = value.split('\n');
+  return lines.map((line, index) => (
+    <React.Fragment key={`${line}-${index}`}>
+      {line}
+      {index < lines.length - 1 && <br />}
+    </React.Fragment>
+  ));
+}
+
 const Home: React.FC = () => {
   const [homepage, setHomepage] = useState<HomepageContent | null>(null);
-  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -57,7 +67,9 @@ const Home: React.FC = () => {
           setSettings({ ...defaultSettings, ...settingsData });
         })
         .catch(() => {
-          if (active) setHomepage(null);
+          if (!active) return;
+          setHomepage(null);
+          setSettings(defaultSettings);
         });
     };
     const reloadWhenVisible = () => {
@@ -561,16 +573,9 @@ const Home: React.FC = () => {
         </div>
 
         <section className="exhibition-hero">
-          <div className="exhibition-eyebrow">{settings.home_eyebrow}</div>
-          <h1>
-            {settings.home_title.split('\n').map((line, index) => (
-              <React.Fragment key={`${line}-${index}`}>
-                {line}
-                {index < settings.home_title.split('\n').length - 1 && <br />}
-              </React.Fragment>
-            ))}
-          </h1>
-          <p>{settings.home_intro}</p>
+          <div className="exhibition-eyebrow">{settings?.home_eyebrow ?? ''}</div>
+          <h1>{settings ? renderLines(settings.home_title) : null}</h1>
+          <p>{settings?.home_intro ?? ''}</p>
         </section>
 
         <section className="exhibition-stage">
@@ -582,7 +587,7 @@ const Home: React.FC = () => {
                 {mainWorkCover ? (
                   <img src={mainWorkCover} alt={mainWork?.title || emptyMainWork.title} />
                 ) : (
-                  <div className="exhibition-empty-art">Configure main-work in CMS</div>
+                  <div className="exhibition-empty-art">Something here?</div>
                 )}
                 <div className="exhibition-overlay-bottom">
                   <div className="exhibition-caption">
@@ -595,21 +600,16 @@ const Home: React.FC = () => {
 
             <div className="exhibition-surface exhibition-side-note">
               <div className="exhibition-label-row">
-                <span style={{ color: 'var(--orange)' }}>{settings.statement_label}</span>
+                <span style={{ color: 'var(--orange)' }}>{settings?.statement_label ?? ''}</span>
               </div>
               <div className="exhibition-manifesto">
-                {settings.statement_body.split('\n').map((line, index) => (
-                  <React.Fragment key={`${line}-${index}`}>
-                    {line}
-                    {index < settings.statement_body.split('\n').length - 1 && <br />}
-                  </React.Fragment>
-                ))}
+                {settings ? renderLines(settings.statement_body) : null}
               </div>
             </div>
 
             <div className="exhibition-surface exhibition-writing">
               <div className="exhibition-label-row">
-                <span style={{ color: 'var(--violet)' }}>{settings.wall_labels_label}</span>
+                <span style={{ color: 'var(--violet)' }}>{settings?.wall_labels_label ?? ''}</span>
               </div>
               <div className="exhibition-list">
                 {wallLabels.length ? (
@@ -621,8 +621,8 @@ const Home: React.FC = () => {
                   ))
                 ) : (
                   <a href="#/diary">
-                    <div className="exhibition-list-title">后台未设置墙签文字</div>
-                    <div className="exhibition-list-meta">Set homepage_slot: wall-label</div>
+                    <div className="exhibition-list-title">正在加载地图</div>
+                    <div className="exhibition-list-meta"></div>
                   </a>
                 )}
               </div>
@@ -632,7 +632,7 @@ const Home: React.FC = () => {
               {frameACover ? (
                 <img src={frameACover} alt={frameA?.title || emptyFrames.frameA.title} />
               ) : (
-                <div className="exhibition-empty-art">Configure frame-a in CMS</div>
+                <div className="exhibition-empty-art">Something here?</div>
               )}
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
@@ -646,7 +646,7 @@ const Home: React.FC = () => {
               {frameBCover ? (
                 <img src={frameBCover} alt={frameB?.title || emptyFrames.frameB.title} />
               ) : (
-                <div className="exhibition-empty-art">Configure frame-b in CMS</div>
+                <div className="exhibition-empty-art">Something here?</div>
               )}
               <div className="exhibition-overlay-bottom">
                 <div className="exhibition-caption">
@@ -658,13 +658,13 @@ const Home: React.FC = () => {
 
             <div className="exhibition-surface exhibition-frame-c">
               <div className="exhibition-label-row">
-                <span style={{ color: 'var(--green)' }}>{settings.curator_label}</span>
+                <span style={{ color: 'var(--green)' }}>{settings?.curator_label ?? ''}</span>
               </div>
               <div className="exhibition-curator-copy">
-                {settings.curator_body}
+                {settings?.curator_body ?? ''}
               </div>
               <div className="exhibition-muted" style={{ marginTop: 18 }}>
-                {settings.curator_meta}
+                {settings?.curator_meta ?? ''}
               </div>
             </div>
           </section>

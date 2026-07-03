@@ -147,12 +147,12 @@ export const ProjectsPage: React.FC = () => {
     <main style={pageStyle}>
       <PageHeader
         eyebrow="Projects"
-        title="项目索引"
-        body="这里放从首页中心展件延伸出来的项目。首页负责建立第一眼，项目页负责交代作品本身。"
+        title="可以先去倒杯咖啡"
+        body="这里是一些项目，记录了codex的额度是如何被使用掉的。"
       />
-      {loading && <EmptyState>读取项目中。</EmptyState>}
+      {loading && <EmptyState>加载地形中。</EmptyState>}
       {!loading && posts.length === 0 && (
-        <EmptyState>后台还没有已发布的 project。发布文章后，把内容类型设为 project。</EmptyState>
+        <EmptyState>商家正在备餐。</EmptyState>
       )}
       {!loading && posts.length > 0 && (
         <div className="grid gap-4 md:grid-cols-3">
@@ -172,10 +172,10 @@ export const FramesPage: React.FC = () => {
 
   return (
     <main style={pageStyle}>
-      <PageHeader eyebrow="Frames" title="影像索引" body="影像不是被压成标题的文字列表。这里保留图片本身的观看空间。" />
-      {loading && <EmptyState>读取影像中。</EmptyState>}
+      <PageHeader eyebrow="Frames" title="取景器外" body="影像的意义，在于把尽兴的瞬间，变成永恒。" />
+      {loading && <EmptyState>正在逆转录存储卡。</EmptyState>}
       {!loading && posts.length === 0 && (
-        <EmptyState>后台还没有已发布的 frame。发布文章后，把内容类型设为 frame，并设置封面图。</EmptyState>
+        <EmptyState>相比起知道天下事，留住眼前人或许更重要一点。</EmptyState>
       )}
       {!loading && posts.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -220,11 +220,11 @@ export const DiaryPage: React.FC = () => {
 
   return (
     <main style={pageStyle}>
-      <PageHeader eyebrow="Diary" title="日记索引" body="日记只需要标题和一点点时间感，不需要在首页展开正文。" />
+      <PageHeader eyebrow="Diary" title="日记" body="日记可以用于未来治疗阿尔兹海默症。" />
       <div className="rounded-3xl p-5 md:p-7" style={surfaceStyle}>
         {loading && <div style={{ color: '#9aa9bd' }}>读取中。</div>}
         {!loading && posts.length === 0 && (
-          <div style={{ color: '#9aa9bd' }}>后台还没有已发布的 diary / writing。</div>
+          <div style={{ color: '#9aa9bd' }}>人，如果你把水倒在石头上，什么都没发生。</div>
         )}
         {!loading &&
           posts.map((post) => (

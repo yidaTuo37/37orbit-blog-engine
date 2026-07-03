@@ -106,7 +106,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div> */}
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} 37ORBIT. Do Something.
+            © {new Date().getFullYear()} 3777
           </div>
           <div className="flex gap-6">
              <div className="w-1.5 h-1.5 bg-[#ef8d69] rounded-full animate-pulse"></div>
