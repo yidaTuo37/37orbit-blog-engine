@@ -1,6 +1,7 @@
 import { HomepageContent, Post } from '../types';
 
 const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
+const STATIC_BASE = (import.meta.env.VITE_CONTENT_STATIC_BASE || '/cms').replace(/\/+$/, '');
 
 type ListResponse = {
   items: Post[];
@@ -67,4 +68,30 @@ export const orbitContentSource: ContentSource = {
   },
 };
 
-export const contentService = orbitContentSource;
+export const staticContentSource: ContentSource = {
+  async getPosts(options = {}): Promise<Post[]> {
+    const res = await fetch(`${STATIC_BASE}/posts.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch static posts: ${res.status}`);
+    const json = (await res.json()) as ListResponse;
+    let items = json.items ?? [];
+    if (options.category) items = items.filter((post) => post.category === options.category);
+    if (options.homepage_slot) items = items.filter((post) => post.homepage_slot === options.homepage_slot);
+    if (options.featured !== undefined) items = items.filter((post) => post.featured === options.featured);
+    return items.slice(0, options.pageSize ?? items.length);
+  },
+
+  async getPostBySlug(slug: string): Promise<Post | null> {
+    const res = await fetch(`${STATIC_BASE}/posts/${encodeURIComponent(slug)}.json`, { cache: 'no-store' });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Failed to fetch static post: ${res.status}`);
+    return (await res.json()) as Post;
+  },
+
+  async getHomepage(): Promise<HomepageContent> {
+    const res = await fetch(`${STATIC_BASE}/homepage.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch static homepage: ${res.status}`);
+    return (await res.json()) as HomepageContent;
+  },
+};
+
+export const contentService = API_URL ? orbitContentSource : staticContentSource;
