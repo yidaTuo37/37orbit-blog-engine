@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": 19,
+      "slug": "design",
+      "title": "DESIGN",
+      "summary": "",
+      "tags": [],
+      "category": "project",
+      "homepage_slot": "",
+      "featured": false,
+      "sort_order": 0,
+      "cover": "",
+      "status": "published",
+      "created_at": "2026-07-02T08:46:26.690Z",
+      "updated_at": "2026-07-02T09:44:09.812Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 1000
+}
