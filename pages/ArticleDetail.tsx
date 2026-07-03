@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import 'katex/dist/katex.min.css';
 import { contentService, getMediaURL } from '../services/api';
 import { Post } from '../types';
+import { withMinimumDelay } from '../utils/loading';
 
 type Props = {
   slug: string;
@@ -41,7 +42,7 @@ const ArticleDetail: React.FC<Props> = ({ slug }) => {
     const loadArticle = async () => {
       try {
         setLoading(true);
-        const data = await contentService.getPostBySlug(normalizedSlug);
+        const data = await withMinimumDelay(contentService.getPostBySlug(normalizedSlug));
         if (!data) throw new Error('Article not found');
         if (active) {
           setArticle(data);

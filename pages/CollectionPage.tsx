@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
 import { Post } from '../types';
 import ArticleDetail from './ArticleDetail';
+import { withMinimumDelay } from '../utils/loading';
 
 const pageStyle: React.CSSProperties = {
   minHeight: 'calc(100dvh - 80px)',
@@ -70,7 +71,7 @@ function useCategoryPosts(categories: string[]) {
     let active = true;
     const loadPosts = () => {
       setLoading(true);
-      Promise.all(categories.map((category) => contentService.getPosts({ category })))
+      withMinimumDelay(Promise.all(categories.map((category) => contentService.getPosts({ category }))))
         .then((groups) => {
           if (active) setPosts(sortPosts(groups.flat()));
         })

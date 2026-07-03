@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
 import { HomepageContent, Post, SiteSettings } from '../types';
+import { withMinimumDelay } from '../utils/loading';
 
 const emptySettings: SiteSettings = {
   home_eyebrow: '',
@@ -61,7 +62,7 @@ const Home: React.FC = () => {
     let active = true;
     const loadHomepage = () => {
       const requestId = ++requestIdRef.current;
-      Promise.all([contentService.getHomepage(), contentService.getSettings()])
+      withMinimumDelay(Promise.all([contentService.getHomepage(), contentService.getSettings()]))
         .then(([homepageData, settingsData]) => {
           if (!active || requestId !== requestIdRef.current) return;
           setHomepage(homepageData);
