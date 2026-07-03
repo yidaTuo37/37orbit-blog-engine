@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
 import { HomepageContent, Post, SiteSettings } from '../types';
 
-const defaultSettings: SiteSettings = {
-  home_eyebrow: 'Exhibition Wall',
-  home_title: '先让人看到中心展品，\n再读旁边的解释文字。',
-  home_intro:
-    '这一版不再平均对待栏目。主项目像被挂在墙面中央，写作退成展签，影像变成侧面证据。重点不是模块齐不齐，而是视线有没有被正确引导。',
-  statement_label: 'Statement',
-  statement_body: '项目是主展件。\n文字是墙签。\n影像是现场感。',
-  wall_labels_label: 'Wall Labels',
-  curator_label: 'Curator Note',
-  curator_body: '不是把项目、写作、影像做成三块平权模块，而是像策展一样先确定主轴，再安排旁证。',
-  curator_meta: '37ORBIT / Homepage Study / v2',
+const emptySettings: SiteSettings = {
+  home_eyebrow: '',
+  home_title: '',
+  home_intro: '',
+  statement_label: '',
+  statement_body: '',
+  wall_labels_label: '',
+  curator_label: '',
+  curator_body: '',
+  curator_meta: '',
 };
 
 const emptyMainWork = {
@@ -56,20 +55,21 @@ function renderLines(value: string) {
 const Home: React.FC = () => {
   const [homepage, setHomepage] = useState<HomepageContent | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     let active = true;
     const loadHomepage = () => {
+      const requestId = ++requestIdRef.current;
       Promise.all([contentService.getHomepage(), contentService.getSettings()])
         .then(([homepageData, settingsData]) => {
-          if (!active) return;
+          if (!active || requestId !== requestIdRef.current) return;
           setHomepage(homepageData);
-          setSettings({ ...defaultSettings, ...settingsData });
+          setSettings({ ...emptySettings, ...settingsData });
         })
         .catch(() => {
-          if (!active) return;
+          if (!active || requestId !== requestIdRef.current) return;
           setHomepage(null);
-          setSettings(defaultSettings);
         });
     };
     const reloadWhenVisible = () => {
