@@ -16,6 +16,12 @@ function estimateReadTime(post: Post): number {
   return Math.max(1, Math.round(text.length / 400));
 }
 
+function getParentCollection(post: Post): { href: string; label: string } {
+  if (post.category === 'project') return { href: '#/projects', label: 'projects' };
+  if (post.category === 'frame') return { href: '#/frames', label: 'frames' };
+  return { href: '#/diary', label: 'diary' };
+}
+
 const ArticleDetail: React.FC<Props> = ({ slug }) => {
   const [progress, setProgress] = useState(0);
   const [article, setArticle] = useState<Post | null>(null);
@@ -92,6 +98,7 @@ const ArticleDetail: React.FC<Props> = ({ slug }) => {
 
   const readMinutes = estimateReadTime(article);
   const displayDate = article.updated_at || article.created_at;
+  const parentCollection = getParentCollection(article);
 
   return (
     <>
@@ -104,10 +111,15 @@ const ArticleDetail: React.FC<Props> = ({ slug }) => {
 
       <article className="max-w-4xl mx-auto">
         <div className="mb-8 md:mb-10">
-          <div className="flex items-center gap-4 mb-6">
-            <a href="#/" className="text-xs font-bold text-[#FF791B] hover:underline">
-              ← RETURN TO ORBIT
-            </a>
+          <div className="mb-6 flex items-center gap-4">
+            <div className="flex flex-col items-start gap-1">
+              <a href="#/" className="text-sm font-black tracking-[0.12em] text-[#FF791B] hover:underline md:text-base">
+                ← return to orbit
+              </a>
+              <a href={parentCollection.href} className="text-[11px] font-bold tracking-[0.1em] text-gray-500 hover:text-gray-300 hover:underline">
+                ← {parentCollection.label}
+              </a>
+            </div>
             <div className="h-px bg-white/10 flex-grow"></div>
           </div>
 

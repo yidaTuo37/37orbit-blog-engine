@@ -34,7 +34,7 @@ const PageHeader: React.FC<{ eyebrow: string; title: string; body: string }> = (
         textDecoration: 'none',
       }}
     >
-      ← 返回展览墙
+      ← return to orbit
     </a>
     <div
       className="mono-font"

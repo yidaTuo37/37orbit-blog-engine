@@ -480,7 +480,7 @@ const Home: React.FC = () => {
         .exhibition-curator-copy {
           font-size: 28px;
           line-height: 1.15;
-          max-width: 15ch;
+          max-width: 24ch;
           font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
         }
 
