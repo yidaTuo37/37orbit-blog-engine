@@ -3,6 +3,7 @@ import { contentService, getMediaURL } from '../services/api';
 import { Post } from '../types';
 import ArticleDetail from './ArticleDetail';
 import { withMinimumDelay } from '../utils/loading';
+import { getFrameTheme, groupFramePostsByTheme } from '../utils/frameShowcase';
 
 const pageStyle: React.CSSProperties = {
   minHeight: 'calc(100dvh - 80px)',
@@ -141,6 +142,96 @@ const ProjectCard: React.FC<{ post: Post }> = ({ post }) => {
   );
 };
 
+const FrameImageFallback: React.FC<{ title: string }> = ({ title }) => (
+  <div
+    className="flex h-full w-full items-center justify-center bg-white/[0.04] px-8 text-center"
+    style={{ color: 'rgba(238, 243, 248, 0.42)' }}
+  >
+    <span className="mono-font text-xs uppercase" style={{ letterSpacing: '0.18em' }}>
+      {title || 'No cover'}
+    </span>
+  </div>
+);
+
+function frameMeta(post: Post): string {
+  const year = new Date(post.updated_at || post.created_at).getFullYear();
+  const theme = getFrameTheme(post);
+  return `${theme === 'Unsorted' ? 'Frames' : theme} / ${year}`;
+}
+
+const FrameTile: React.FC<{ post: Post; featured?: boolean }> = ({ post, featured = false }) => {
+  const cover = getMediaURL(post.cover);
+
+  return (
+    <a
+      href={`#/article/${post.slug}`}
+      className="group block overflow-hidden rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#FF791B]/80"
+      style={surfaceStyle}
+    >
+      <div className="relative overflow-hidden" style={{ aspectRatio: featured ? '16 / 10' : '4 / 3' }}>
+        {cover ? (
+          <img
+            src={cover}
+            alt={post.title}
+            loading={featured ? 'eager' : 'lazy'}
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <FrameImageFallback title={post.title} />
+        )}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{
+            padding: featured ? 'clamp(18px, 3vw, 30px)' : 18,
+            background: 'linear-gradient(180deg, rgba(5, 8, 13, 0), rgba(5, 8, 13, 0.82))',
+          }}
+        >
+          <div className="mono-font" style={{ fontSize: 11, color: '#9ed0cf', letterSpacing: '0.12em' }}>
+            {frameMeta(post)}
+          </div>
+          <div
+            className="serif-font"
+            style={{
+              marginTop: 8,
+              fontSize: featured ? 'clamp(28px, 4vw, 52px)' : 24,
+              lineHeight: 1.05,
+              color: '#eef3f8',
+            }}
+          >
+            {post.title}
+          </div>
+        </div>
+      </div>
+      {post.summary && (
+        <div style={{ padding: featured ? '18px clamp(18px, 3vw, 28px) 22px' : '16px 18px 18px' }}>
+          <p className="line-clamp-2" style={{ margin: 0, color: '#9aa9bd', fontSize: 14, lineHeight: 1.7 }}>
+            {post.summary}
+          </p>
+        </div>
+      )}
+    </a>
+  );
+};
+
+const FrameThemeSection: React.FC<{ theme: string; posts: Post[] }> = ({ theme, posts }) => (
+  <section>
+    <div className="mb-4 flex items-end justify-between gap-4 border-b border-white/10 pb-3">
+      <h2 className="mono-font text-xs uppercase" style={{ color: '#9ed0cf', letterSpacing: '0.16em' }}>
+        {theme}
+      </h2>
+      <div className="mono-font text-xs" style={{ color: '#6f7b8c' }}>
+        {posts.length.toString().padStart(2, '0')}
+      </div>
+    </div>
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {posts.map((post) => (
+        <FrameTile key={post.slug} post={post} />
+      ))}
+    </div>
+  </section>
+);
+
 export const ProjectsPage: React.FC = () => {
   const { posts, loading } = useCategoryPosts(['project']);
 
@@ -170,46 +261,36 @@ export const ProjectDetailPage: React.FC<{ id: string }> = ({ id }) => <ArticleD
 
 export const FramesPage: React.FC = () => {
   const { posts, loading } = useCategoryPosts(['frame']);
+  const featuredPosts = posts.slice(0, 3);
+  const themeGroups = groupFramePostsByTheme(posts.slice(3));
 
   return (
     <main style={pageStyle}>
-      <PageHeader eyebrow="Frames" title="取景器外" body="影像的意义，在于把尽兴的瞬间，变成永恒。" />
+      <PageHeader eyebrow="Frames" title="取景器外" body="影像先作为现场感出现；需要说明时，再进入文字。" />
       {loading && <EmptyState>正在逆转录存储卡。</EmptyState>}
       {!loading && posts.length === 0 && (
-        <EmptyState>相比起知道天下事，留住眼前人或许更重要一点。</EmptyState>
+        <EmptyState>还没有发布的影像。等第一张照片进入轨道后，这里会成为它的房间。</EmptyState>
       )}
       {!loading && posts.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {posts.map((post) => {
-            const cover = getMediaURL(post.cover);
-            return (
-              <a key={post.slug} href={`#/article/${post.slug}`} className="overflow-hidden rounded-3xl" style={surfaceStyle}>
-                <div style={{ aspectRatio: '16 / 10' }}>
-                  {cover ? (
-                    <img
-                      src={cover}
-                      alt={post.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-white/5 text-xs uppercase tracking-[0.18em] text-white/35">
-                      No cover
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: 18 }}>
-                  <div className="serif-font" style={{ fontSize: 24 }}>
-                    {post.title}
-                  </div>
-                  <div className="mono-font" style={{ marginTop: 6, fontSize: 12, color: '#9aa9bd' }}>
-                    {postMeta(post)}
-                  </div>
-                </div>
-              </a>
-            );
-          })}
+        <div className="space-y-10">
+          <section className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+            {featuredPosts[0] && <FrameTile post={featuredPosts[0]} featured />}
+            {featuredPosts.length > 1 && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                {featuredPosts.slice(1).map((post) => (
+                  <FrameTile key={post.slug} post={post} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {themeGroups.length > 0 && (
+            <div className="space-y-8">
+              {themeGroups.map((group) => (
+                <FrameThemeSection key={group.theme} theme={group.theme} posts={group.posts} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </main>
