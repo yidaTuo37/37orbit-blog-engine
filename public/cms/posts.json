@@ -1,22 +1,6 @@
 {
-  "items": [
-    {
-      "id": 34,
-      "slug": "post",
-      "title": "苦呀西",
-      "summary": "",
-      "tags": [],
-      "category": "frame",
-      "homepage_slot": "",
-      "featured": true,
-      "sort_order": 0,
-      "cover": "/cms/media/posts/drafts/2024-06-23-21-26-21-1783332689219.png",
-      "status": "published",
-      "created_at": "2026-07-06T10:11:45.391Z",
-      "updated_at": "2026-07-06T10:11:47.936Z"
-    }
-  ],
-  "total": 1,
+  "items": [],
+  "total": 0,
   "page": 1,
   "pageSize": 1000
 }
