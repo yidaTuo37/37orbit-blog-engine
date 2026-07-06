@@ -266,10 +266,10 @@ export const FramesPage: React.FC = () => {
 
   return (
     <main style={pageStyle}>
-      <PageHeader eyebrow="Frames" title="取景器外" body="影像先作为现场感出现；需要说明时，再进入文字。" />
+      <PageHeader eyebrow="Frames" title="取景器外" body="影像的意义，在于把尽兴的瞬间，变成永恒。" />
       {loading && <EmptyState>正在逆转录存储卡。</EmptyState>}
       {!loading && posts.length === 0 && (
-        <EmptyState>还没有发布的影像。等第一张照片进入轨道后，这里会成为它的房间。</EmptyState>
+        <EmptyState>相比起知道天下事，留住眼前人或许更重要一点。</EmptyState>
       )}
       {!loading && posts.length > 0 && (
         <div className="space-y-10">
