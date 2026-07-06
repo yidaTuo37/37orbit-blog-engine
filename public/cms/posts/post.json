@@ -1,0 +1,17 @@
+{
+  "id": 34,
+  "slug": "post",
+  "title": "苦呀西",
+  "summary": "",
+  "tags": [],
+  "category": "frame",
+  "homepage_slot": "",
+  "featured": true,
+  "sort_order": 0,
+  "cover": "/cms/media/posts/drafts/2024-06-23-21-26-21-1783332689219.png",
+  "status": "published",
+  "created_at": "2026-07-06T10:11:45.391Z",
+  "updated_at": "2026-07-06T10:11:47.936Z",
+  "content": "![2024-06-23-21-26-21-1783332689219](/media/posts/drafts/2024-06-23-21-26-21-1783332689219.png)\n\n",
+  "html": "<p><img src=\"/cms/media/posts/drafts/2024-06-23-21-26-21-1783332689219.png\" alt=\"2024-06-23-21-26-21-1783332689219\"></p>"
+}
