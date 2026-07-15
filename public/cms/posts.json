@@ -1,6 +1,21 @@
 {
   "items": [
     {
+      "id": 43,
+      "slug": "6th-live-dream-bloom-garden-party-bloom-garden-party-stage",
+      "title": "蓮ノ空女学院スクールアイドルクラブ 6th Live Dream ～Bloom Garden Party～ ＜Bloom Garden Party Stage／埼玉公演＞远征记录",
+      "summary": "",
+      "tags": [],
+      "category": "diary",
+      "homepage_slot": "main-work",
+      "featured": true,
+      "sort_order": 0,
+      "cover": "/Users/37box/Desktop/lib/37/C801530E-1EE9-46B4-BF23-F74ABABE4314_1_105_c.jpeg",
+      "status": "published",
+      "created_at": "2026-07-15T10:09:18.274Z",
+      "updated_at": "2026-07-15T10:10:36.631Z"
+    },
+    {
       "id": 37,
       "slug": "homo810",
       "title": "homo810",
@@ -16,7 +31,7 @@
       "updated_at": "2026-07-09T10:52:36.773Z"
     }
   ],
-  "total": 1,
+  "total": 2,
   "page": 1,
   "pageSize": 1000
 }
