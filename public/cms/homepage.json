@@ -7,12 +7,12 @@
     "tags": [],
     "category": "diary",
     "homepage_slot": "main-work",
-    "featured": true,
+    "featured": false,
     "sort_order": 0,
-    "cover": "/Users/37box/Desktop/lib/37/C801530E-1EE9-46B4-BF23-F74ABABE4314_1_105_c.jpeg",
+    "cover": "",
     "status": "published",
     "created_at": "2026-07-15T10:09:18.274Z",
-    "updated_at": "2026-07-15T10:19:45.208Z"
+    "updated_at": "2026-07-16T09:58:28.743Z"
   },
   "frames": {
     "frameA": null,
