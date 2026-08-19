@@ -5,6 +5,11 @@ export interface HomepageThemeGroup {
   posts: Post[];
 }
 
+export interface HomepageBrowse {
+  latestPosts: Post[];
+  themeGroups: HomepageThemeGroup[];
+}
+
 export function sortHomepagePosts(posts: Post[]): Post[] {
   return [...posts].sort(
     (a, b) =>
@@ -24,4 +29,14 @@ export function groupHomepagePostsByTheme(posts: Post[]): HomepageThemeGroup[] {
   }
 
   return Array.from(groups, ([theme, groupedPosts]) => ({ theme, posts: groupedPosts }));
+}
+
+export function prepareHomepageBrowse(posts: Post[], mainWorkSlug?: string): HomepageBrowse {
+  const publishedPosts = posts.filter((post) => post.status === 'published');
+  const sortedPosts = sortHomepagePosts(publishedPosts);
+
+  return {
+    latestPosts: sortedPosts.filter((post) => post.slug !== mainWorkSlug).slice(0, 6),
+    themeGroups: groupHomepagePostsByTheme(publishedPosts),
+  };
 }

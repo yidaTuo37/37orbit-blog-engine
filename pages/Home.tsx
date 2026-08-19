@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
 import { HomepageContent, Post, SiteSettings } from '../types';
-import { groupHomepagePostsByTheme, sortHomepagePosts } from '../utils/homepageCuration';
+import { prepareHomepageBrowse } from '../utils/homepageCuration';
 import { withMinimumDelay } from '../utils/loading';
 
 const emptySettings: SiteSettings = {
@@ -72,7 +72,7 @@ const HomepagePostCard: React.FC<{ post: Post; compact?: boolean; lead?: boolean
     >
       <div className="orbit-story-visual">
         {cover ? (
-          <img src={cover} alt={post.title} loading={lead ? 'eager' : 'lazy'} decoding="async" />
+          <img src={cover} alt="" loading="lazy" decoding="async" />
         ) : (
           <div className="orbit-story-empty">NO VISUAL SIGNAL</div>
         )}
@@ -103,17 +103,15 @@ const Home: React.FC = () => {
         Promise.allSettled([
           contentService.getHomepage(),
           contentService.getSettings(),
-          contentService.getPosts({ pageSize: 100 }),
+          contentService.getAllPosts(),
         ]),
       ).then(([homepageResult, settingsResult, postsResult]) => {
           if (!active || requestId !== requestIdRef.current) return;
-          setHomepage(homepageResult.status === 'fulfilled' ? homepageResult.value : null);
-          setSettings(
-            settingsResult.status === 'fulfilled'
-              ? { ...emptySettings, ...settingsResult.value }
-              : { ...emptySettings },
-          );
-          setPosts(postsResult.status === 'fulfilled' ? postsResult.value : []);
+          if (homepageResult.status === 'fulfilled') setHomepage(homepageResult.value);
+          if (settingsResult.status === 'fulfilled') {
+            setSettings({ ...emptySettings, ...settingsResult.value });
+          }
+          if (postsResult.status === 'fulfilled') setPosts(postsResult.value);
         });
     };
     const reloadWhenVisible = () => {
@@ -144,11 +142,8 @@ const Home: React.FC = () => {
         href: `#/article/${post.slug}`,
       }))
     : [];
-  const publishedPosts = posts.filter((post) => post.status === 'published');
-  const sortedPosts = sortHomepagePosts(publishedPosts);
-  const latestPosts = sortedPosts.filter((post) => post.slug !== mainWork?.slug).slice(0, 6);
+  const { latestPosts, themeGroups } = prepareHomepageBrowse(posts, mainWork?.slug);
   const [latestLead, ...latestRest] = latestPosts;
-  const themeGroups = groupHomepagePostsByTheme(publishedPosts);
 
   return (
     <main className="orbit-page">
@@ -163,7 +158,7 @@ const Home: React.FC = () => {
           --orange: #ff7a45;
           --cyan: #8fc5c9;
           min-height: 100dvh;
-          overflow: hidden;
+          overflow-x: clip;
           color: var(--text);
           background: var(--bg);
           font-family: Inter, system-ui, sans-serif;
@@ -276,7 +271,7 @@ const Home: React.FC = () => {
           max-width: 650px;
           margin: 28px 0 0;
           color: var(--muted);
-          font-size: 15px;
+          font-size: 16px;
           line-height: 1.8;
         }
 
@@ -437,7 +432,7 @@ const Home: React.FC = () => {
         .orbit-story-meta { display: flex; justify-content: space-between; gap: 18px; color: var(--muted); font: 500 10px/1.4 ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
         .orbit-story-meta span:first-child { color: var(--cyan); }
         .orbit-story h3 { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; margin: 18px 0 0; font: 400 clamp(23px, 2.4vw, 38px)/1.08 "Noto Serif SC", Georgia, serif; letter-spacing: -0.035em; }
-        .orbit-story p { margin: 16px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+        .orbit-story p { margin: 16px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
 
         .orbit-story-lead { grid-template-rows: minmax(360px, 1fr) auto; }
         .orbit-story-lead .orbit-story-visual { min-height: 360px; }
@@ -630,7 +625,7 @@ const Home: React.FC = () => {
                     <span className="orbit-index">{String(group.posts.length).padStart(2, '0')}</span>
                   </div>
                   <div className="orbit-topic-grid">
-                    {group.posts.slice(0, 6).map((post) => <HomepagePostCard key={post.slug} post={post} />)}
+                    {group.posts.map((post) => <HomepagePostCard key={post.slug} post={post} />)}
                   </div>
                 </section>
               ))}

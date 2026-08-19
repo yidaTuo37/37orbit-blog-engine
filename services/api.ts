@@ -1,4 +1,5 @@
 import { HomepageContent, Post, SiteSettings } from '../types';
+import { collectAllPages } from '../utils/pagination';
 
 const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
 const STATIC_BASE = (import.meta.env.VITE_CONTENT_STATIC_BASE || '/cms').replace(/\/+$/, '');
@@ -17,6 +18,7 @@ export interface ContentSource {
     featured?: boolean;
     pageSize?: number;
   }): Promise<Post[]>;
+  getAllPosts(): Promise<Post[]>;
   getPostBySlug(slug: string): Promise<Post | null>;
   getHomepage(): Promise<HomepageContent>;
   getSettings(): Promise<SiteSettings>;
@@ -54,6 +56,16 @@ export const orbitContentSource: ContentSource = {
     return json.items ?? [];
   },
 
+  async getAllPosts(): Promise<Post[]> {
+    return collectAllPages(async (page, pageSize) => {
+      const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+      const res = await fetch(apiPath(`/api/posts?${params.toString()}`), { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Failed to fetch posts: ${res.status}`);
+      const json = (await res.json()) as ListResponse;
+      return { items: json.items ?? [], total: json.total ?? 0 };
+    });
+  },
+
   async getPostBySlug(slug: string): Promise<Post | null> {
     const res = await fetch(apiPath(`/api/posts/${encodeURIComponent(slug)}`), { cache: 'no-store' });
     if (res.status === 404) return null;
@@ -85,6 +97,13 @@ export const staticContentSource: ContentSource = {
     if (options.homepage_slot) items = items.filter((post) => post.homepage_slot === options.homepage_slot);
     if (options.featured !== undefined) items = items.filter((post) => post.featured === options.featured);
     return items.slice(0, options.pageSize ?? items.length);
+  },
+
+  async getAllPosts(): Promise<Post[]> {
+    const res = await fetch(`${STATIC_BASE}/posts.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch static posts: ${res.status}`);
+    const json = (await res.json()) as ListResponse;
+    return json.items ?? [];
   },
 
   async getPostBySlug(slug: string): Promise<Post | null> {

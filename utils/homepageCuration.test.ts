@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Post } from '../types.ts';
-import { groupHomepagePostsByTheme, sortHomepagePosts } from './homepageCuration.ts';
+import {
+  groupHomepagePostsByTheme,
+  prepareHomepageBrowse,
+  sortHomepagePosts,
+} from './homepageCuration.ts';
 
 function post(overrides: Partial<Post> & Pick<Post, 'slug'>): Post {
   return {
@@ -62,5 +66,25 @@ describe('groupHomepagePostsByTheme', () => {
     assert.equal(groups.length, 1);
     assert.equal(groups[0].theme, '未分类');
     assert.deepEqual(groups[0].posts.map((item) => item.slug), ['blank', 'missing']);
+  });
+});
+
+describe('prepareHomepageBrowse', () => {
+  it('keeps every published topic post while limiting latest stories and excluding drafts', () => {
+    const published = Array.from({ length: 8 }, (_, index) =>
+      post({
+        slug: `published-${index}`,
+        tags: ['同一主题'],
+        updated_at: `2026-03-${String(index + 1).padStart(2, '0')}T00:00:00.000Z`,
+      }),
+    );
+    const draft = post({ slug: 'draft', tags: ['同一主题'], status: 'draft' });
+
+    const result = prepareHomepageBrowse([...published, draft], 'published-7');
+
+    assert.equal(result.latestPosts.length, 6);
+    assert.equal(result.latestPosts.some((item) => item.slug === 'published-7'), false);
+    assert.equal(result.themeGroups[0].posts.length, 8);
+    assert.equal(result.themeGroups[0].posts.some((item) => item.slug === 'draft'), false);
   });
 });

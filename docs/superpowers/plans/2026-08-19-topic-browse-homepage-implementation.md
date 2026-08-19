@@ -13,7 +13,7 @@
 - Keep all existing authored placeholder copy unchanged.
 - Use tags for topics; category remains display metadata only.
 - Do not add dependencies or fake content.
-- Show no more than 6 posts in Latest Stories and no more than 6 per topic.
+- Show no more than 6 posts in Latest Stories and every published post in its topic.
 - Preserve reduced-motion and responsive behavior.
 
 ---
@@ -39,12 +39,12 @@
 - Modify: `pages/Home.tsx`
 
 **Interfaces:**
-- Consumes: `contentService.getPosts({ pageSize: 100 })`
+- Consumes: `contentService.getAllPosts()` with complete API pagination
 - Consumes: `sortHomepagePosts()` and `groupHomepagePostsByTheme()`
 
 - [ ] Extend homepage state and loading to retrieve all published posts without removing existing homepage/settings behavior.
 - [ ] Render Latest Stories after the editorial feature, with a maximum of 6 real posts.
-- [ ] Render every non-empty topic group with a heading, count, and up to 6 post links.
+- [ ] Render every non-empty topic group with a heading, count, and all of its post links.
 - [ ] Add responsive styles, lazy image loading below the hero, focus states, and line clamping.
 - [ ] Confirm empty and partial-failure states keep the existing authored placeholders.
 
