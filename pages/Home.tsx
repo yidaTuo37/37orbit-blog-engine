@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { contentService, getMediaURL } from '../services/api';
 import { HomepageContent, Post, SiteSettings } from '../types';
+import { groupHomepagePostsByTheme, sortHomepagePosts } from '../utils/homepageCuration';
 import { withMinimumDelay } from '../utils/loading';
 
 const emptySettings: SiteSettings = {
@@ -53,24 +54,66 @@ function renderLines(value: string) {
   ));
 }
 
+function postTheme(post: Post) {
+  return post.tags.find((tag) => tag.trim())?.trim() || '未分类';
+}
+
+const HomepagePostCard: React.FC<{ post: Post; compact?: boolean; lead?: boolean }> = ({
+  post,
+  compact = false,
+  lead = false,
+}) => {
+  const cover = getMediaURL(post.cover);
+
+  return (
+    <a
+      href={`#/article/${post.slug}`}
+      className={`orbit-story${compact ? ' orbit-story-compact' : ''}${lead ? ' orbit-story-lead' : ''}`}
+    >
+      <div className="orbit-story-visual">
+        {cover ? (
+          <img src={cover} alt={post.title} loading={lead ? 'eager' : 'lazy'} decoding="async" />
+        ) : (
+          <div className="orbit-story-empty">NO VISUAL SIGNAL</div>
+        )}
+      </div>
+      <div className="orbit-story-copy">
+        <div className="orbit-story-meta">
+          <span>{postTheme(post)}</span>
+          <span>{postMeta(post, '')}</span>
+        </div>
+        <h3>{post.title}</h3>
+        {!compact && post.summary && <p>{post.summary}</p>}
+      </div>
+    </a>
+  );
+};
+
 const Home: React.FC = () => {
   const [homepage, setHomepage] = useState<HomepageContent | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const requestIdRef = useRef(0);
 
   useEffect(() => {
     let active = true;
     const loadHomepage = () => {
       const requestId = ++requestIdRef.current;
-      withMinimumDelay(Promise.all([contentService.getHomepage(), contentService.getSettings()]))
-        .then(([homepageData, settingsData]) => {
+      withMinimumDelay(
+        Promise.allSettled([
+          contentService.getHomepage(),
+          contentService.getSettings(),
+          contentService.getPosts({ pageSize: 100 }),
+        ]),
+      ).then(([homepageResult, settingsResult, postsResult]) => {
           if (!active || requestId !== requestIdRef.current) return;
-          setHomepage(homepageData);
-          setSettings({ ...emptySettings, ...settingsData });
-        })
-        .catch(() => {
-          if (!active || requestId !== requestIdRef.current) return;
-          setHomepage(null);
+          setHomepage(homepageResult.status === 'fulfilled' ? homepageResult.value : null);
+          setSettings(
+            settingsResult.status === 'fulfilled'
+              ? { ...emptySettings, ...settingsResult.value }
+              : { ...emptySettings },
+          );
+          setPosts(postsResult.status === 'fulfilled' ? postsResult.value : []);
         });
     };
     const reloadWhenVisible = () => {
@@ -101,574 +144,500 @@ const Home: React.FC = () => {
         href: `#/article/${post.slug}`,
       }))
     : [];
+  const publishedPosts = posts.filter((post) => post.status === 'published');
+  const sortedPosts = sortHomepagePosts(publishedPosts);
+  const latestPosts = sortedPosts.filter((post) => post.slug !== mainWork?.slug).slice(0, 6);
+  const [latestLead, ...latestRest] = latestPosts;
+  const themeGroups = groupHomepagePostsByTheme(publishedPosts);
 
   return (
-    <main className="exhibition-page">
+    <main className="orbit-page">
       <style>{`
-        .exhibition-page {
-          --bg: #101724;
-          --panel: rgba(18, 28, 43, 0.8);
-          --line: rgba(202, 220, 244, 0.14);
-          --line-strong: rgba(216, 230, 250, 0.28);
-          --text: #eef3f8;
-          --muted: #9aa9bd;
-          --green: #9ed0cf;
-          --orange: #ef8d69;
-          --violet: #c6b8df;
+        .orbit-page {
+          --bg: #05070c;
+          --surface: #0d1420;
+          --text: #f2f0ea;
+          --muted: #8792a3;
+          --line: rgba(213, 224, 239, 0.15);
+          --line-strong: rgba(213, 224, 239, 0.34);
+          --orange: #ff7a45;
+          --cyan: #8fc5c9;
           min-height: 100dvh;
-          overflow-x: hidden;
-          background:
-            linear-gradient(180deg, #02050d 0%, #040916 12%, #09172c 28%, #102848 48%, #09172a 68%, #030812 100%);
+          overflow: hidden;
           color: var(--text);
+          background: var(--bg);
+          font-family: Inter, system-ui, sans-serif;
         }
 
-        .exhibition-page::before {
+        .orbit-page::before {
           content: "";
           position: fixed;
-          inset: 0;
-          pointer-events: none;
-          background:
-            linear-gradient(180deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.36) 16%, rgba(16,42,78,0.1) 38%, rgba(34,74,125,0.14) 53%, rgba(3,8,18,0.22) 100%),
-            linear-gradient(180deg, transparent 15%, rgba(48,93,139,0.035) 30%, rgba(74,139,171,0.09) 45%, rgba(94,171,195,0.14) 58%, rgba(160,132,205,0.15) 70%, rgba(225,111,166,0.21) 80%, rgba(238,83,70,0.3) 88%, rgba(249,151,79,0.45) 94%, rgba(248,185,103,0.52) 97%, transparent 100%),
-            radial-gradient(1800px 780px at 50% 116%, rgba(251,177,91,0.52) 0%, rgba(242,99,76,0.38) 22%, rgba(222,126,184,0.26) 42%, rgba(101,187,206,0.16) 64%, transparent 86%);
-          opacity: 0.95;
-        }
-
-        .exhibition-page::after {
-          content: "";
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          background:
-            radial-gradient(circle at 50% 100%, rgba(255,202,134,0.16), transparent 24%),
-            radial-gradient(circle at 52% 98%, rgba(123,206,217,0.12), transparent 20%),
-            linear-gradient(180deg, transparent 38%, rgba(99,188,213,0.065) 58%, rgba(207,121,200,0.095) 75%, rgba(245,112,74,0.15) 90%, transparent 100%);
-          mix-blend-mode: screen;
-        }
-
-        .exhibition-page a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        .exhibition-page img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .exhibition-sky-sun {
-          position: fixed;
-          left: -10vw;
-          top: 52vh;
-          width: 42vw;
-          height: 42vw;
-          min-width: 420px;
-          min-height: 420px;
+          z-index: 0;
+          left: 50%;
+          bottom: -54vw;
+          width: 112vw;
+          height: 78vw;
+          border: 1px solid rgba(143, 197, 201, 0.18);
           border-radius: 50%;
+          transform: translateX(-50%);
           pointer-events: none;
-          z-index: 1;
-          background:
-            radial-gradient(circle at 50% 50%, rgba(255,188,105,0.5) 0%, rgba(248,105,78,0.34) 18%, rgba(226,116,184,0.18) 35%, rgba(93,180,212,0.08) 52%, transparent 70%);
-          filter: blur(28px);
-          opacity: 0.76;
-          mix-blend-mode: screen;
+          box-shadow: 0 -34px 120px rgba(255, 122, 69, 0.12), 0 -4px 42px rgba(143, 197, 201, 0.1);
         }
 
-        .exhibition-shell {
-          width: min(1440px, calc(100vw - 40px));
-          margin: 0 auto;
-          padding: 20px 0 40px;
-          position: relative;
-          z-index: 2;
-        }
-
-        .exhibition-topbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 18px;
-        }
-
-        .exhibition-brand {
-          font-size: 28px;
-          font-weight: 700;
-          letter-spacing: -0.05em;
-          font-family: "Space Grotesk", sans-serif;
-        }
-
-        .exhibition-nav {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          color: var(--muted);
-          font-size: 13px;
-        }
-
-        .exhibition-nav a,
-        .exhibition-nav span {
-          border: 1px solid var(--line);
-          border-radius: 999px;
-          padding: 8px 12px;
-          background: rgba(255,255,255,0.02);
-          transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
-        }
-
-        .exhibition-nav a:hover {
-          border-color: var(--line-strong);
-          color: var(--text);
-          background: rgba(255,255,255,0.045);
-        }
-
-        .exhibition-hero {
-          margin: 0 0 18px;
-        }
-
-        .exhibition-eyebrow {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.24em;
-          color: var(--muted);
-          font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
-        }
-
-        .exhibition-hero h1 {
-          margin: 10px 0 0;
-          font-size: clamp(34px, 6vw, 92px);
-          line-height: 0.94;
-          font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
-        }
-
-        .exhibition-hero p {
-          margin: 14px 0 0;
-          max-width: 780px;
-          color: var(--muted);
-          line-height: 1.75;
-          font-size: 15px;
-        }
-
-        .exhibition-stage {
-          position: relative;
-          min-height: 720px;
-          padding: 22px;
-          border: 1px solid rgba(206, 220, 242, 0.08);
-          border-radius: 30px;
-          background:
-            linear-gradient(180deg, rgba(205,225,255,0.035), rgba(255,255,255,0.01)),
-            linear-gradient(180deg, rgba(26,49,85,0.28), rgba(7,16,31,0.18) 42%, rgba(238,92,74,0.06) 82%, rgba(247,169,93,0.085) 100%),
-            linear-gradient(180deg, transparent 35%, rgba(107,190,209,0.04) 57%, rgba(210,117,192,0.055) 76%, rgba(246,137,82,0.085) 92%, transparent 100%),
-            radial-gradient(circle at 85% 14%, rgba(115,153,202,0.1), transparent 24%),
-            radial-gradient(circle at 50% 103%, rgba(247,158,82,0.22), transparent 30%);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.02),
-            0 34px 90px rgba(6,10,18,0.26);
-          overflow: hidden;
-        }
-
-        .exhibition-stage-grid {
-          position: absolute;
-          inset: 0;
-          background:
-            linear-gradient(rgba(210,226,246,0.032) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(210,226,246,0.032) 1px, transparent 1px);
-          background-size: 132px 132px;
-          opacity: 0.22;
-          pointer-events: none;
-        }
-
-        .exhibition-wall {
-          display: grid;
-          grid-template-columns: repeat(12, minmax(0, 1fr));
-          grid-template-rows: 180px 230px 228px;
-          gap: 18px;
-          position: relative;
-          z-index: 1;
-        }
-
-        .exhibition-surface {
-          background: var(--panel);
-          border: 1px solid var(--line);
-          border-radius: 24px;
-          backdrop-filter: blur(12px);
-        }
-
-        .exhibition-image-fill {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .exhibition-empty-art {
-          display: flex;
-          height: 100%;
-          min-height: 180px;
-          align-items: center;
-          justify-content: center;
-          padding: 24px;
-          color: rgba(238, 243, 248, 0.46);
-          font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
-          font-size: 12px;
-          letter-spacing: 0.12em;
-          text-align: center;
-          text-transform: uppercase;
-          background:
-            linear-gradient(135deg, rgba(255,255,255,0.06), transparent 42%),
-            radial-gradient(circle at 50% 100%, rgba(239,141,105,0.16), transparent 42%),
-            rgba(255,255,255,0.025);
-        }
-
-        .exhibition-image-fill > img {
-          position: absolute;
-          inset: 0;
-        }
-
-        .exhibition-overlay-bottom {
-          position: absolute;
-          inset: auto 0 0 0;
-          padding: 18px;
-          background: linear-gradient(180deg, rgba(8,11,17,0) 0%, rgba(10,14,21,0.86) 100%);
-        }
-
-        .exhibition-caption {
-          display: grid;
-          gap: 4px;
-        }
-
-        .exhibition-caption-title {
-          font-size: 18px;
-          line-height: 1.2;
-          font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
-        }
-
-        .exhibition-caption-meta {
-          font-size: 12px;
-          color: var(--muted);
-        }
-
-        .exhibition-project-wrap {
-          grid-column: 1 / span 7;
-          grid-row: 1 / span 2;
-          position: relative;
-        }
-
-        .exhibition-project {
-          display: block;
-          position: relative;
-          overflow: hidden;
-          min-height: 0;
-          height: 100%;
-          border-radius: 28px;
-          box-shadow:
-            0 28px 84px rgba(5,9,17,0.38),
-            0 0 0 1px rgba(219,228,240,0.04);
-        }
-
-        .exhibition-tag {
-          position: absolute;
-          left: 18px;
-          top: -12px;
-          z-index: 2;
-          padding: 8px 12px;
-          border: 1px solid rgba(205,220,242,0.16);
-          border-radius: 999px;
-          background: rgba(18,24,33,0.92);
-          font-size: 11px;
-          letter-spacing: 0.12em;
-          color: var(--text);
-          font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
-        }
-
-        .exhibition-side-note {
-          grid-column: 8 / span 5;
-          grid-row: 1;
-          padding: 20px;
-          border-radius: 28px 28px 12px 28px;
-          background:
-            linear-gradient(180deg, rgba(227,160,126,0.12), rgba(255,255,255,0.02)),
-            linear-gradient(180deg, rgba(22,31,42,0.66), rgba(22,31,42,0.66));
-        }
-
-        .exhibition-writing {
-          grid-column: 8 / span 5;
-          grid-row: 2 / span 2;
-          padding: 20px;
-          border-radius: 12px 28px 28px 28px;
-          background:
-            linear-gradient(180deg, rgba(178,172,208,0.08), rgba(255,255,255,0.015)),
-            linear-gradient(180deg, rgba(22,31,42,0.72), rgba(22,31,42,0.72));
-        }
-
-        .exhibition-frame-a {
-          display: block;
-          grid-column: 1 / span 4;
-          grid-row: 3;
-          border-radius: 18px;
-        }
-
-        .exhibition-frame-b {
-          display: block;
-          grid-column: 5 / span 3;
-          grid-row: 3;
-          border-radius: 18px;
-        }
-
-        .exhibition-frame-c {
-          grid-column: 8 / span 5;
-          grid-row: 3;
-          padding: 20px;
-          display: grid;
-          align-content: end;
-          border-radius: 28px;
-          background:
-            linear-gradient(180deg, rgba(157,195,196,0.08), rgba(255,255,255,0.02)),
-            linear-gradient(180deg, rgba(22,31,42,0.72), rgba(22,31,42,0.72));
-        }
-
-        .exhibition-label-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 12px;
-        }
-
-        .exhibition-label-row::after {
+        .orbit-page::after {
           content: "";
-          flex: 1;
-          height: 1px;
-          background: var(--line);
+          position: fixed;
+          z-index: 0;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(80% 34% at 50% 104%, rgba(255, 122, 69, 0.14), transparent 67%),
+            linear-gradient(90deg, transparent 49.95%, rgba(213, 224, 239, 0.045) 50%, transparent 50.05%);
         }
 
-        .exhibition-label-row span {
-          font-size: 14px;
-          font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
+        .orbit-page a { color: inherit; text-decoration: none; }
+        .orbit-page a:focus-visible { outline: 2px solid var(--orange); outline-offset: 5px; }
+        .orbit-page img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+        .orbit-shell {
+          position: relative;
+          z-index: 1;
+          width: min(1480px, calc(100vw - 64px));
+          margin: 0 auto;
+          padding: 22px 0 64px;
         }
 
-        .exhibition-manifesto {
-          font-size: clamp(28px, 3.3vw, 42px);
-          line-height: 1;
-          max-width: 10ch;
-          font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
-        }
-
-        .exhibition-list {
+        .orbit-topbar {
           display: grid;
-        }
-
-        .exhibition-list a {
-          padding: 14px 0 12px;
+          grid-template-columns: 1fr auto;
+          align-items: center;
+          min-height: 64px;
           border-bottom: 1px solid var(--line);
         }
 
-        .exhibition-list a:last-child {
-          border-bottom: 0;
+        .orbit-brand {
+          font: 700 28px/1 "Space Grotesk", sans-serif;
+          letter-spacing: -0.055em;
         }
 
-        .exhibition-list-title {
-          font-size: 20px;
-          line-height: 1.32;
-          margin-bottom: 6px;
-          font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
+        .orbit-brand sup {
+          margin-left: 8px;
+          color: var(--orange);
+          font: 500 9px/1 ui-monospace, monospace;
+          letter-spacing: 0.08em;
+          vertical-align: top;
         }
 
-        .exhibition-list-meta,
-        .exhibition-muted {
+        .orbit-nav { display: flex; align-self: stretch; }
+        .orbit-nav a {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          min-width: 126px;
+          padding: 0 18px;
+          border-left: 1px solid var(--line);
           color: var(--muted);
-          font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
-          font-size: 12px;
+          font: 600 11px/1 "Space Grotesk", sans-serif;
+          letter-spacing: 0.12em;
+          transition: color 180ms ease, border-color 180ms ease;
         }
 
-        .exhibition-curator-copy {
-          font-size: 28px;
-          line-height: 1.15;
-          max-width: 24ch;
-          font-family: "Noto Serif SC", Georgia, "Songti SC", serif;
+        .orbit-nav a span { color: var(--orange); font-family: ui-monospace, monospace; }
+        .orbit-nav a:hover { color: var(--text); border-color: var(--orange); }
+
+        .orbit-hero {
+          display: grid;
+          grid-template-columns: repeat(12, minmax(0, 1fr));
+          gap: 20px;
+          padding: clamp(54px, 8vw, 126px) 0 clamp(58px, 8vw, 112px);
         }
 
-        @media (max-width: 1100px) {
-          .exhibition-shell {
-            width: min(100vw - 24px, 1440px);
-          }
-
-          .exhibition-stage {
-            min-height: auto;
-            padding: 16px;
-          }
-
-          .exhibition-wall {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto;
-          }
-
-          .exhibition-project-wrap,
-          .exhibition-side-note,
-          .exhibition-writing,
-          .exhibition-frame-a,
-          .exhibition-frame-b,
-          .exhibition-frame-c {
-            grid-column: auto;
-            grid-row: auto;
-          }
-
-          .exhibition-project {
-            min-height: 420px;
-          }
-
-          .exhibition-frame-a,
-          .exhibition-frame-b {
-            min-height: 260px;
-          }
+        .orbit-hero-copy { grid-column: 1 / span 9; }
+        .orbit-eyebrow,
+        .orbit-kicker,
+        .orbit-meta,
+        .orbit-telemetry,
+        .orbit-index {
+          color: var(--muted);
+          font: 500 10px/1.4 "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+          letter-spacing: 0.13em;
+          text-transform: uppercase;
         }
 
-        @media (max-width: 720px) {
-          .exhibition-shell {
-            width: calc(100vw - 16px);
-            padding-top: 12px;
-          }
+        .orbit-eyebrow { color: var(--cyan); }
+        .orbit-hero h1 {
+          max-width: 11ch;
+          margin: 18px 0 0;
+          font: 400 clamp(52px, 8vw, 132px)/0.88 "Noto Serif SC", Georgia, serif;
+          letter-spacing: -0.065em;
+        }
 
-          .exhibition-brand {
-            font-size: 24px;
-          }
+        .orbit-hero p {
+          max-width: 650px;
+          margin: 28px 0 0;
+          color: var(--muted);
+          font-size: 15px;
+          line-height: 1.8;
+        }
 
-          .exhibition-nav {
-            font-size: 12px;
-          }
+        .orbit-telemetry {
+          grid-column: 10 / span 3;
+          align-self: end;
+          display: grid;
+          gap: 9px;
+          padding-bottom: 8px;
+        }
 
-          .exhibition-hero p {
-            font-size: 14px;
-          }
+        .orbit-telemetry div { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+        .orbit-telemetry b { color: var(--text); font-weight: 500; }
 
-          .exhibition-stage {
-            padding: 12px;
-            border-radius: 22px;
-          }
+        .orbit-board {
+          display: grid;
+          grid-template-columns: repeat(12, minmax(0, 1fr));
+          gap: 22px;
+          border-top: 1px solid var(--line);
+          padding-top: 22px;
+        }
 
-          .exhibition-side-note,
-          .exhibition-writing,
-          .exhibition-frame-c {
-            padding: 14px;
-          }
+        .orbit-feature { grid-column: 1 / span 8; }
+        .orbit-rail { grid-column: 9 / span 4; display: flex; flex-direction: column; border-left: 1px solid var(--line); padding-left: 22px; }
+        .orbit-section-head { display: flex; align-items: center; justify-content: space-between; min-height: 34px; margin-bottom: 12px; }
+        .orbit-section-head .orbit-index { color: var(--orange); }
 
-          .exhibition-tag {
-            left: 12px;
-            top: 12px;
-          }
+        .orbit-media {
+          position: relative;
+          display: block;
+          min-height: 530px;
+          overflow: hidden;
+          border-radius: 20px;
+          background: var(--surface);
+        }
 
-          .exhibition-manifesto,
-          .exhibition-curator-copy {
-            max-width: none;
-          }
+        .orbit-media > img { position: absolute; inset: 0; transition: transform 320ms ease; }
+        .orbit-media:hover > img { transform: scale(1.02); }
+        .orbit-empty {
+          display: grid;
+          place-items: center;
+          height: 100%;
+          min-height: inherit;
+          color: rgba(242, 240, 234, 0.43);
+          font: 500 11px/1 ui-monospace, monospace;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          background:
+            linear-gradient(135deg, rgba(143, 197, 201, 0.08), transparent 42%),
+            radial-gradient(circle at 80% 110%, rgba(255, 122, 69, 0.16), transparent 40%),
+            repeating-linear-gradient(90deg, transparent 0, transparent calc(25% - 1px), rgba(213, 224, 239, 0.04) 25%);
+        }
+
+        .orbit-caption {
+          position: absolute;
+          inset: auto 0 0;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: end;
+          gap: 24px;
+          padding: 84px 24px 24px;
+          background: linear-gradient(transparent, rgba(5, 7, 12, 0.9));
+        }
+
+        .orbit-caption-title,
+        .orbit-list-title {
+          display: -webkit-box;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+          font-family: "Noto Serif SC", Georgia, serif;
+        }
+
+        .orbit-caption-title { font-size: clamp(24px, 3vw, 42px); line-height: 1.06; }
+        .orbit-meta { letter-spacing: 0.05em; }
+
+        .orbit-note { padding: 18px 0 32px; border-bottom: 1px solid var(--line); }
+        .orbit-note:first-child { padding-top: 0; }
+        .orbit-note-label { display: flex; justify-content: space-between; gap: 12px; color: var(--orange); font: 500 11px/1.4 ui-monospace, monospace; }
+        .orbit-note-label::after { content: "+"; color: var(--muted); }
+        .orbit-manifesto { max-width: 10ch; margin-top: 28px; font: 400 clamp(30px, 3.4vw, 50px)/1 "Noto Serif SC", Georgia, serif; letter-spacing: -0.045em; }
+
+        .orbit-writing { flex: 1; padding-top: 32px; }
+        .orbit-writing-label { color: var(--cyan); margin-bottom: 12px; font: 500 11px/1.4 ui-monospace, monospace; }
+        .orbit-list a { display: grid; grid-template-columns: 32px 1fr; gap: 14px; padding: 18px 0; border-top: 1px solid var(--line); transition: border-color 180ms ease; }
+        .orbit-list a:hover { border-color: var(--orange); }
+        .orbit-list-title { font-size: 20px; line-height: 1.35; }
+
+        .orbit-lower {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(12, minmax(0, 1fr));
+          gap: 22px;
+          margin-top: 42px;
+          padding-top: 22px;
+          border-top: 1px solid var(--line);
+        }
+
+        .orbit-filmstrip { grid-column: 1 / span 8; }
+        .orbit-frames { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; }
+        .orbit-frame { min-height: 274px; border-radius: 7px; }
+        .orbit-frame .orbit-caption { padding: 58px 14px 14px; }
+        .orbit-frame .orbit-caption-title { font-size: 17px; }
+        .orbit-frame .orbit-meta { font-size: 9px; }
+
+        .orbit-curator { grid-column: 9 / span 4; display: flex; flex-direction: column; justify-content: space-between; padding: 8px 0 8px 22px; border-left: 1px solid var(--line); }
+        .orbit-curator-label { color: var(--cyan); font: 500 11px/1.4 ui-monospace, monospace; }
+        .orbit-curator-copy { max-width: 13ch; margin: 42px 0 24px; font: 400 clamp(28px, 3vw, 44px)/1.05 "Noto Serif SC", Georgia, serif; letter-spacing: -0.04em; }
+        .orbit-footer-line { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+        .orbit-browse {
+          grid-column: 1 / -1;
+          margin-top: clamp(78px, 10vw, 150px);
+        }
+
+        .orbit-browse-title {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: end;
+          gap: 24px;
+          margin-bottom: 28px;
+          padding: 0 0 18px;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .orbit-browse-title h2,
+        .orbit-topic-head h2 {
+          margin: 8px 0 0;
+          font: 400 clamp(40px, 6vw, 86px)/0.94 "Noto Serif SC", Georgia, serif;
+          letter-spacing: -0.055em;
+        }
+
+        .orbit-latest-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+          gap: 10px;
+        }
+
+        .orbit-latest-grid-solo { grid-template-columns: 1fr; }
+        .orbit-latest-stack { display: grid; gap: 10px; }
+
+        .orbit-story {
+          display: grid;
+          min-width: 0;
+          overflow: hidden;
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          background: rgba(13, 20, 32, 0.72);
+          transition: border-color 180ms ease, transform 180ms ease;
+        }
+
+        .orbit-story:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+        .orbit-story-visual { position: relative; min-height: 210px; overflow: hidden; background: var(--surface); }
+        .orbit-story-visual img { position: absolute; inset: 0; transition: transform 320ms ease; }
+        .orbit-story:hover .orbit-story-visual img { transform: scale(1.02); }
+        .orbit-story-empty { display: grid; place-items: center; min-height: inherit; color: rgba(242,240,234,0.32); font: 500 10px/1 ui-monospace, monospace; letter-spacing: 0.16em; background: linear-gradient(135deg, rgba(143,197,201,0.07), transparent 44%), radial-gradient(circle at 80% 110%, rgba(255,122,69,0.14), transparent 42%); }
+        .orbit-story-copy { padding: 20px; }
+        .orbit-story-meta { display: flex; justify-content: space-between; gap: 18px; color: var(--muted); font: 500 10px/1.4 ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+        .orbit-story-meta span:first-child { color: var(--cyan); }
+        .orbit-story h3 { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; margin: 18px 0 0; font: 400 clamp(23px, 2.4vw, 38px)/1.08 "Noto Serif SC", Georgia, serif; letter-spacing: -0.035em; }
+        .orbit-story p { margin: 16px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+
+        .orbit-story-lead { grid-template-rows: minmax(360px, 1fr) auto; }
+        .orbit-story-lead .orbit-story-visual { min-height: 360px; }
+        .orbit-story-lead h3 { font-size: clamp(34px, 4.5vw, 66px); max-width: 17ch; }
+        .orbit-story-compact { grid-template-columns: 148px minmax(0, 1fr); }
+        .orbit-story-compact .orbit-story-visual { min-height: 156px; }
+        .orbit-story-compact .orbit-story-copy { padding: 16px; }
+        .orbit-story-compact h3 { margin-top: 12px; font-size: clamp(18px, 1.8vw, 25px); }
+        .orbit-story-compact .orbit-story-meta span:last-child { display: none; }
+
+        .orbit-topics { grid-column: 1 / -1; margin-top: clamp(88px, 12vw, 170px); }
+        .orbit-topics-intro { max-width: 680px; margin: 18px 0 0; color: var(--muted); font-size: 16px; line-height: 1.75; }
+        .orbit-topic { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line); }
+        .orbit-topic-head { display: grid; grid-template-columns: 72px 1fr auto; align-items: end; gap: 22px; margin-bottom: 28px; }
+        .orbit-topic-head h2 { font-size: clamp(38px, 5vw, 72px); }
+        .orbit-topic-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .orbit-topic-grid .orbit-story:nth-child(4n + 1) { grid-column: span 2; }
+        .orbit-topic-grid .orbit-story:nth-child(4n + 1) .orbit-story-visual { min-height: 320px; }
+
+        @media (max-width: 960px) {
+          .orbit-shell { width: min(100vw - 32px, 1480px); }
+          .orbit-topbar { grid-template-columns: 1fr; }
+          .orbit-brand { min-height: 60px; display: flex; align-items: center; }
+          .orbit-nav { border-top: 1px solid var(--line); }
+          .orbit-nav a { flex: 1; min-width: 0; min-height: 48px; padding: 0 10px; border-left: 0; border-right: 1px solid var(--line); }
+          .orbit-hero-copy { grid-column: 1 / span 8; }
+          .orbit-telemetry { grid-column: 9 / span 4; }
+          .orbit-feature, .orbit-filmstrip { grid-column: 1 / span 7; }
+          .orbit-rail, .orbit-curator { grid-column: 8 / span 5; }
+          .orbit-media { min-height: 470px; }
+          .orbit-latest-grid { grid-template-columns: 1fr; }
+          .orbit-latest-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .orbit-story-compact { grid-template-columns: 1fr; }
+          .orbit-topic-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .orbit-topic-grid .orbit-story:nth-child(4n + 1) { grid-column: auto; }
+        }
+
+        @media (max-width: 700px) {
+          .orbit-shell { width: calc(100vw - 24px); padding-top: 8px; }
+          .orbit-brand { font-size: 24px; }
+          .orbit-nav a { justify-content: center; gap: 6px; font-size: 10px; letter-spacing: 0.05em; }
+          .orbit-hero { gap: 0; padding: 62px 0 66px; }
+          .orbit-hero-copy, .orbit-telemetry { grid-column: 1 / -1; }
+          .orbit-hero h1 { font-size: clamp(48px, 17vw, 78px); }
+          .orbit-telemetry { margin-top: 52px; }
+          .orbit-board { grid-template-columns: 1fr; gap: 0; }
+          .orbit-feature, .orbit-rail, .orbit-lower, .orbit-filmstrip, .orbit-curator { grid-column: 1; }
+          .orbit-media { min-height: 470px; }
+          .orbit-caption { grid-template-columns: 1fr; gap: 8px; padding: 76px 16px 16px; }
+          .orbit-rail { margin-top: 42px; padding: 22px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+          .orbit-lower { grid-template-columns: 1fr; margin-top: 52px; }
+          .orbit-frames { grid-template-columns: 1fr; }
+          .orbit-frame { min-height: 260px; }
+          .orbit-curator { margin-top: 42px; padding: 22px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+          .orbit-footer-line { gap: 20px; }
+          .orbit-browse-title { grid-template-columns: 1fr; }
+          .orbit-latest-stack, .orbit-topic-grid { grid-template-columns: 1fr; }
+          .orbit-story-lead { grid-template-rows: minmax(300px, auto) auto; }
+          .orbit-story-lead .orbit-story-visual { min-height: 300px; }
+          .orbit-story-compact { grid-template-columns: 112px minmax(0, 1fr); }
+          .orbit-story-compact .orbit-story-visual { min-height: 150px; }
+          .orbit-story-copy { padding: 16px; }
+          .orbit-story h3 { font-size: 23px; }
+          .orbit-story-lead h3 { font-size: 34px; }
+          .orbit-topic-head { grid-template-columns: 44px 1fr auto; gap: 12px; }
+          .orbit-topic { margin-top: 56px; }
+          .orbit-topic-grid .orbit-story:nth-child(4n + 1) .orbit-story-visual { min-height: 210px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .orbit-page *, .orbit-page *::before, .orbit-page *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+          .orbit-media:hover > img { transform: none; }
         }
       `}</style>
 
-      <div className="exhibition-sky-sun" aria-hidden="true" />
+      <div className="orbit-shell">
+        <header className="orbit-topbar">
+          <a className="orbit-brand" href="#/">37ORBIT<sup>FIELD NOTES</sup></a>
+          <nav className="orbit-nav" aria-label="主要导航">
+            <a href="#/projects"><span>01</span> PROJECTS</a>
+            <a href="#/frames"><span>02</span> FRAMES</a>
+            <a href="#/diary"><span>03</span> DIARY</a>
+          </nav>
+        </header>
 
-      <div className="exhibition-shell">
-        <div className="exhibition-topbar">
-          <div className="exhibition-brand">37ORBIT</div>
-          <div className="exhibition-nav">
-            <a href="#/projects">项目</a>
-            <a href="#/frames">影像</a>
-            <a href="#/diary">日记</a>
+        <section className="orbit-hero">
+          <div className="orbit-hero-copy">
+            <div className="orbit-eyebrow">{settings?.home_eyebrow ?? ''}</div>
+            <h1>{settings ? renderLines(settings.home_title) : null}</h1>
+            <p>{settings?.home_intro ?? ''}</p>
           </div>
-        </div>
-
-        <section className="exhibition-hero">
-          <div className="exhibition-eyebrow">{settings?.home_eyebrow ?? ''}</div>
-          <h1>{settings ? renderLines(settings.home_title) : null}</h1>
-          <p>{settings?.home_intro ?? ''}</p>
+          <div className="orbit-telemetry" aria-label="站点信息">
+            <div><span>SECTOR</span><b>37° ORBIT</b></div>
+            <div><span>MODE</span><b>ARCHIVE</b></div>
+            <div><span>STATUS</span><b>RECEIVING</b></div>
+          </div>
         </section>
 
-        <section className="exhibition-stage">
-          <div className="exhibition-stage-grid" />
-          <section className="exhibition-wall">
-            <div className="exhibition-project-wrap">
-              <div className="exhibition-tag">Main Work / 01</div>
-              <a href={postHref(mainWork ?? null, emptyMainWork.href)} className="exhibition-surface exhibition-project exhibition-image-fill">
-                {mainWorkCover ? (
-                  <img src={mainWorkCover} alt={mainWork?.title || emptyMainWork.title} />
-                ) : (
-                  <div className="exhibition-empty-art">Something here?</div>
-                )}
-                <div className="exhibition-overlay-bottom">
-                  <div className="exhibition-caption">
-                    <div className="exhibition-caption-title">{mainWork?.title || emptyMainWork.title}</div>
-                    <div className="exhibition-caption-meta">{postMeta(mainWork ?? null, emptyMainWork.meta)}</div>
-                  </div>
-                </div>
-              </a>
-            </div>
-
-            <div className="exhibition-surface exhibition-side-note">
-              <div className="exhibition-label-row">
-                <span style={{ color: 'var(--orange)' }}>{settings?.statement_label ?? ''}</span>
-              </div>
-              <div className="exhibition-manifesto">
-                {settings ? renderLines(settings.statement_body) : null}
-              </div>
-            </div>
-
-            <div className="exhibition-surface exhibition-writing">
-              <div className="exhibition-label-row">
-                <span style={{ color: 'var(--violet)' }}>{settings?.wall_labels_label ?? ''}</span>
-              </div>
-              <div className="exhibition-list">
-                {wallLabels.length ? (
-                  wallLabels.map((item) => (
-                    <a key={`${item.href}-${item.title}`} href={item.href}>
-                      <div className="exhibition-list-title">{item.title}</div>
-                      <div className="exhibition-list-meta">{item.meta}</div>
-                    </a>
-                  ))
-                ) : (
-                  <a href="#/diary">
-                    <div className="exhibition-list-title">正在加载地图</div>
-                    <div className="exhibition-list-meta"></div>
-                  </a>
-                )}
-              </div>
-            </div>
-
-            <a href="#/frames" className="exhibition-surface exhibition-frame-a exhibition-image-fill">
-              {frameACover ? (
-                <img src={frameACover} alt={frameA?.title || emptyFrames.frameA.title} />
-              ) : (
-                <div className="exhibition-empty-art">Something here?</div>
-              )}
-              <div className="exhibition-overlay-bottom">
-                <div className="exhibition-caption">
-                  <div className="exhibition-caption-title">{frameA?.title || emptyFrames.frameA.title}</div>
-                  <div className="exhibition-caption-meta">{postMeta(frameA ?? null, emptyFrames.frameA.meta)}</div>
-                </div>
+        <section className="orbit-board">
+          <section className="orbit-feature">
+            <div className="orbit-section-head"><span className="orbit-kicker">CURRENT SIGNAL</span><span className="orbit-index">01 / 04</span></div>
+            <a href={postHref(mainWork ?? null, emptyMainWork.href)} className="orbit-media">
+              {mainWorkCover ? <img src={mainWorkCover} alt={mainWork?.title || emptyMainWork.title} /> : <div className="orbit-empty">Something here?</div>}
+              <div className="orbit-caption">
+                <div className="orbit-caption-title">{mainWork?.title || emptyMainWork.title}</div>
+                <div className="orbit-meta">{postMeta(mainWork ?? null, emptyMainWork.meta)}</div>
               </div>
             </a>
-
-            <a href="#/frames" className="exhibition-surface exhibition-frame-b exhibition-image-fill">
-              {frameBCover ? (
-                <img src={frameBCover} alt={frameB?.title || emptyFrames.frameB.title} />
-              ) : (
-                <div className="exhibition-empty-art">Something here?</div>
-              )}
-              <div className="exhibition-overlay-bottom">
-                <div className="exhibition-caption">
-                  <div className="exhibition-caption-title">{frameB?.title || emptyFrames.frameB.title}</div>
-                  <div className="exhibition-caption-meta">{postMeta(frameB ?? null, emptyFrames.frameB.meta)}</div>
-                </div>
-              </div>
-            </a>
-
-            <div className="exhibition-surface exhibition-frame-c">
-              <div className="exhibition-label-row">
-                <span style={{ color: 'var(--green)' }}>{settings?.curator_label ?? ''}</span>
-              </div>
-              <div className="exhibition-curator-copy">
-                {settings?.curator_body ?? ''}
-              </div>
-              <div className="exhibition-muted" style={{ marginTop: 18 }}>
-                {settings?.curator_meta ?? ''}
-              </div>
-            </div>
           </section>
+
+          <aside className="orbit-rail">
+            <section className="orbit-note">
+              <div className="orbit-note-label"><span>{settings?.statement_label ?? ''}</span><span>TRANSMISSION</span></div>
+              <div className="orbit-manifesto">{settings ? renderLines(settings.statement_body) : null}</div>
+            </section>
+            <section className="orbit-writing">
+              <div className="orbit-writing-label">{settings?.wall_labels_label ?? ''}</div>
+              <div className="orbit-list">
+                {wallLabels.length ? wallLabels.map((item, index) => (
+                  <a key={`${item.href}-${item.title}`} href={item.href}>
+                    <span className="orbit-index">{String(index + 1).padStart(2, '0')}</span>
+                    <span><span className="orbit-list-title">{item.title}</span><span className="orbit-meta">{item.meta}</span></span>
+                  </a>
+                )) : (
+                  <a href="#/diary"><span className="orbit-index">01</span><span><span className="orbit-list-title">正在加载地图</span><span className="orbit-meta"></span></span></a>
+                )}
+              </div>
+            </section>
+          </aside>
+
+          <section className="orbit-lower">
+            <section className="orbit-filmstrip">
+              <div className="orbit-section-head"><span className="orbit-kicker">RECENT FRAMES</span><span className="orbit-index">02 / 04</span></div>
+              <div className="orbit-frames">
+                <a href="#/frames" className="orbit-media orbit-frame">
+                  {frameACover ? <img src={frameACover} alt={frameA?.title || emptyFrames.frameA.title} /> : <div className="orbit-empty">Something here?</div>}
+                  <div className="orbit-caption"><div className="orbit-caption-title">{frameA?.title || emptyFrames.frameA.title}</div><div className="orbit-meta">{postMeta(frameA ?? null, emptyFrames.frameA.meta)}</div></div>
+                </a>
+                <a href="#/frames" className="orbit-media orbit-frame">
+                  {frameBCover ? <img src={frameBCover} alt={frameB?.title || emptyFrames.frameB.title} /> : <div className="orbit-empty">Something here?</div>}
+                  <div className="orbit-caption"><div className="orbit-caption-title">{frameB?.title || emptyFrames.frameB.title}</div><div className="orbit-meta">{postMeta(frameB ?? null, emptyFrames.frameB.meta)}</div></div>
+                </a>
+              </div>
+            </section>
+
+            <aside className="orbit-curator">
+              <div className="orbit-curator-label">{settings?.curator_label ?? ''}</div>
+              <div>
+                <div className="orbit-curator-copy">{settings?.curator_body ?? ''}</div>
+                <div className="orbit-meta">{settings?.curator_meta ?? ''}</div>
+              </div>
+            </aside>
+          </section>
+
+          {latestLead && (
+            <section className="orbit-browse" aria-labelledby="latest-stories-title">
+              <div className="orbit-browse-title">
+                <div>
+                  <div className="orbit-kicker">BROWSE THE ARCHIVE</div>
+                  <h2 id="latest-stories-title">Latest Stories</h2>
+                </div>
+                <div className="orbit-index">{String(latestPosts.length).padStart(2, '0')} SIGNALS</div>
+              </div>
+              <div className={`orbit-latest-grid${latestRest.length ? '' : ' orbit-latest-grid-solo'}`}>
+                <HomepagePostCard post={latestLead} lead />
+                {latestRest.length > 0 && (
+                  <div className="orbit-latest-stack">
+                    {latestRest.map((post) => <HomepagePostCard key={post.slug} post={post} compact />)}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {themeGroups.length > 0 && (
+            <section className="orbit-topics" aria-labelledby="topics-title">
+              <div className="orbit-kicker">TOPIC DIRECTORY</div>
+              <div className="orbit-browse-title">
+                <div>
+                  <h2 id="topics-title">Explore by Topic</h2>
+                  <p className="orbit-topics-intro">从主题进入轨道。项目、影像与日记只是形式，真正的线索是内容彼此讨论的事物。</p>
+                </div>
+                <div className="orbit-index">{String(themeGroups.length).padStart(2, '0')} TOPICS</div>
+              </div>
+              {themeGroups.map((group, index) => (
+                <section className="orbit-topic" key={group.theme}>
+                  <div className="orbit-topic-head">
+                    <span className="orbit-index">{String(index + 1).padStart(2, '0')}</span>
+                    <h2>{group.theme}</h2>
+                    <span className="orbit-index">{String(group.posts.length).padStart(2, '0')}</span>
+                  </div>
+                  <div className="orbit-topic-grid">
+                    {group.posts.slice(0, 6).map((post) => <HomepagePostCard key={post.slug} post={post} />)}
+                  </div>
+                </section>
+              ))}
+            </section>
+          )}
+
+          <footer className="orbit-footer-line orbit-index"><span>37ORBIT / INDEPENDENT ARCHIVE</span><span>END OF TRANSMISSION</span></footer>
         </section>
       </div>
     </main>
