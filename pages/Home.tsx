@@ -142,8 +142,10 @@ const Home: React.FC = () => {
         href: `#/article/${post.slug}`,
       }))
     : [];
-  const { latestPosts, themeGroups } = prepareHomepageBrowse(posts, mainWork?.slug);
-  const [latestLead, ...latestRest] = latestPosts;
+  const { themeGroups } = prepareHomepageBrowse(
+    posts,
+    [mainWork?.slug, frameA?.slug, frameB?.slug].filter((slug): slug is string => Boolean(slug)),
+  );
 
   return (
     <main className="orbit-page">
@@ -382,11 +384,6 @@ const Home: React.FC = () => {
         .orbit-curator-copy { max-width: 13ch; margin: 42px 0 24px; font: 400 clamp(28px, 3vw, 44px)/1.05 "Noto Serif SC", Georgia, serif; letter-spacing: -0.04em; }
         .orbit-footer-line { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line); }
 
-        .orbit-browse {
-          grid-column: 1 / -1;
-          margin-top: clamp(78px, 10vw, 150px);
-        }
-
         .orbit-browse-title {
           display: grid;
           grid-template-columns: 1fr auto;
@@ -403,15 +400,6 @@ const Home: React.FC = () => {
           font: 400 clamp(40px, 6vw, 86px)/0.94 "Noto Serif SC", Georgia, serif;
           letter-spacing: -0.055em;
         }
-
-        .orbit-latest-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
-          gap: 10px;
-        }
-
-        .orbit-latest-grid-solo { grid-template-columns: 1fr; }
-        .orbit-latest-stack { display: grid; gap: 10px; }
 
         .orbit-story {
           display: grid;
@@ -434,9 +422,6 @@ const Home: React.FC = () => {
         .orbit-story h3 { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; margin: 18px 0 0; font: 400 clamp(23px, 2.4vw, 38px)/1.08 "Noto Serif SC", Georgia, serif; letter-spacing: -0.035em; }
         .orbit-story p { margin: 16px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
 
-        .orbit-story-lead { grid-template-rows: minmax(360px, 1fr) auto; }
-        .orbit-story-lead .orbit-story-visual { min-height: 360px; }
-        .orbit-story-lead h3 { font-size: clamp(34px, 4.5vw, 66px); max-width: 17ch; }
         .orbit-story-compact { grid-template-columns: 148px minmax(0, 1fr); }
         .orbit-story-compact .orbit-story-visual { min-height: 156px; }
         .orbit-story-compact .orbit-story-copy { padding: 16px; }
@@ -586,26 +571,6 @@ const Home: React.FC = () => {
               </div>
             </aside>
           </section>
-
-          {latestLead && (
-            <section className="orbit-browse" aria-labelledby="latest-stories-title">
-              <div className="orbit-browse-title">
-                <div>
-                  <div className="orbit-kicker">BROWSE THE ARCHIVE</div>
-                  <h2 id="latest-stories-title">Latest Stories</h2>
-                </div>
-                <div className="orbit-index">{String(latestPosts.length).padStart(2, '0')} SIGNALS</div>
-              </div>
-              <div className={`orbit-latest-grid${latestRest.length ? '' : ' orbit-latest-grid-solo'}`}>
-                <HomepagePostCard post={latestLead} lead />
-                {latestRest.length > 0 && (
-                  <div className="orbit-latest-stack">
-                    {latestRest.map((post) => <HomepagePostCard key={post.slug} post={post} compact />)}
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
 
           {themeGroups.length > 0 && (
             <section className="orbit-topics" aria-labelledby="topics-title">

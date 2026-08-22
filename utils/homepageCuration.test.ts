@@ -70,7 +70,7 @@ describe('groupHomepagePostsByTheme', () => {
 });
 
 describe('prepareHomepageBrowse', () => {
-  it('keeps every published topic post while limiting latest stories and excluding drafts', () => {
+  it('keeps every published topic post except homepage-featured items', () => {
     const published = Array.from({ length: 8 }, (_, index) =>
       post({
         slug: `published-${index}`,
@@ -80,11 +80,12 @@ describe('prepareHomepageBrowse', () => {
     );
     const draft = post({ slug: 'draft', tags: ['同一主题'], status: 'draft' });
 
-    const result = prepareHomepageBrowse([...published, draft], 'published-7');
+    const result = prepareHomepageBrowse([...published, draft], ['published-7', 'published-6']);
 
     assert.equal(result.latestPosts.length, 6);
     assert.equal(result.latestPosts.some((item) => item.slug === 'published-7'), false);
-    assert.equal(result.themeGroups[0].posts.length, 8);
+    assert.equal(result.themeGroups[0].posts.length, 6);
     assert.equal(result.themeGroups[0].posts.some((item) => item.slug === 'draft'), false);
+    assert.equal(result.themeGroups[0].posts.some((item) => item.slug === 'published-6'), false);
   });
 });

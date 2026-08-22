@@ -31,12 +31,13 @@ export function groupHomepagePostsByTheme(posts: Post[]): HomepageThemeGroup[] {
   return Array.from(groups, ([theme, groupedPosts]) => ({ theme, posts: groupedPosts }));
 }
 
-export function prepareHomepageBrowse(posts: Post[], mainWorkSlug?: string): HomepageBrowse {
+export function prepareHomepageBrowse(posts: Post[], excludedSlugs: string[] = []): HomepageBrowse {
   const publishedPosts = posts.filter((post) => post.status === 'published');
+  const excluded = new Set(excludedSlugs);
   const sortedPosts = sortHomepagePosts(publishedPosts);
 
   return {
-    latestPosts: sortedPosts.filter((post) => post.slug !== mainWorkSlug).slice(0, 6),
-    themeGroups: groupHomepagePostsByTheme(publishedPosts),
+    latestPosts: sortedPosts.filter((post) => !excluded.has(post.slug)).slice(0, 6),
+    themeGroups: groupHomepagePostsByTheme(publishedPosts.filter((post) => !excluded.has(post.slug))),
   };
 }
