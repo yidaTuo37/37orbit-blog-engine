@@ -1,8 +1,10 @@
 import { HomepageContent, Post, SiteSettings } from '../types';
 import { collectAllPages } from '../utils/pagination';
+import { resolveContentSourceMode } from './contentSourceMode';
 
 const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
 const STATIC_BASE = (import.meta.env.VITE_CONTENT_STATIC_BASE || '/cms').replace(/\/+$/, '');
+const CONTENT_SOURCE_MODE = resolveContentSourceMode(import.meta.env.VITE_CONTENT_SOURCE);
 
 type ListResponse = {
   items: Post[];
@@ -126,4 +128,6 @@ export const staticContentSource: ContentSource = {
   },
 };
 
-export const contentService = API_URL ? orbitContentSource : staticContentSource;
+export const contentService = CONTENT_SOURCE_MODE === 'static'
+  ? staticContentSource
+  : orbitContentSource;
