@@ -1,6 +1,6 @@
 import { HomepageContent, Post, SiteSettings } from '../types';
 import { collectAllPages } from '../utils/pagination';
-import { resolveContentSourceMode } from './contentSourceMode';
+import { resolveContentMediaUrl, resolveContentSourceMode } from './contentSourceMode';
 
 const API_URL = (import.meta.env.VITE_CONTENT_API_URL || '').replace(/\/+$/, '');
 const STATIC_BASE = (import.meta.env.VITE_CONTENT_STATIC_BASE || '/cms').replace(/\/+$/, '');
@@ -31,10 +31,7 @@ function apiPath(path: string): string {
 }
 
 export const getMediaURL = (url?: string | null): string => {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  if (!url.startsWith('/')) return url;
-  return API_URL ? `${API_URL}${url}` : url;
+  return resolveContentMediaUrl(CONTENT_SOURCE_MODE, API_URL, url);
 };
 
 export function absolutizeMediaUrls(html: string): string {
