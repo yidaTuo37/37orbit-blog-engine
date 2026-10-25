@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1160" role="img" aria-labelledby="title description">
+  <title id="title">37° Orbit 未闭合轨道标志设计草图</title>
+  <desc id="description">未闭合细线轨道的几何拆解：四段三次贝塞尔弧线，穿过参考中心的37度轴线，以及轴线上的橙色圆点。</desc>
+  <defs>
+    <pattern id="grid" width="22" height="22" patternUnits="userSpaceOnUse">
+      <path d="M22 0H0V22" fill="none" stroke="#ebe5de" stroke-width="1"/>
+    </pattern>
+    <style>
+      text{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#2c2927}
+      .mono{font-family:"SFMono-Regular",Consolas,monospace;letter-spacing:.02em}
+      .muted{fill:#7a736c}.orange{fill:#c45c1a}.light{fill:#f4f0e9}.on-dark{fill:#bfb6ac}
+      .leader{stroke:#b2a79d;stroke-width:1.5;fill:none}
+    </style>
+  </defs>
+
+  <rect width="1600" height="1160" fill="#f4f0e9"/>
+  <text x="60" y="54" class="mono orange" font-size="14" font-weight="700">37° ORBIT  /  IDENTITY STUDY</text>
+  <text x="60" y="110" font-size="43" font-weight="700">未闭合轨道 · 几何草图</text>
+  <text x="1540" y="105" class="mono muted" font-size="13" text-anchor="end">OUTLINE MARK  /  EXACT SOURCE GEOMETRY</text>
+  <path d="M60 135H1540" stroke="#d9d0c7"/>
+
+  <!-- The selected open orbit with a 37-degree inner axis -->
+  <rect x="60" y="168" width="420" height="608" rx="22" fill="#292725"/>
+  <text x="94" y="212" class="mono on-dark" font-size="13" font-weight="700">01  /  FINAL MARK</text>
+  <g transform="translate(136 261) scale(3.35)" fill="none">
+    <path d="M57.7 13.1C45.8 5.2 29.6 6.7 19 17.3C6.5 29.8 6.5 50.2 19 62.7s32.9 12.5 45.4 0C72.6 54.5 74.5 43.6 71.1 34" stroke="#f4f0e9" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M22.83 52.94 57.17 27.06" stroke="#f4f0e9" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="67.68" cy="19.14" r="5" fill="#ff791b"/>
+  </g>
+  <text x="96" y="623" class="light" font-size="48" font-weight="800" letter-spacing="-3">37°</text>
+  <text x="99" y="654" class="mono light" font-size="15" font-weight="700" letter-spacing="7">ORBIT</text>
+  <path d="M94 698H446" stroke="#514b45"/>
+  <text x="94" y="727" class="on-dark" font-size="13">未闭合轨道保留原有的轻盈轮廓。</text>
+  <text x="94" y="750" class="on-dark" font-size="13">斜线与橙点共用一条 37° 轴线。</text>
+
+  <!-- Enlarged path construction -->
+  <rect x="506" y="168" width="1034" height="608" rx="22" fill="#fdfbf8" stroke="#ded6ce"/>
+  <text x="540" y="212" class="mono orange" font-size="13" font-weight="700">02  /  PATH CONSTRUCTION</text>
+  <text x="1506" y="212" class="mono muted" font-size="12" text-anchor="end">80 × 80 UNITS  ·  SCALE 5.5×</text>
+  <rect x="530" y="232" width="986" height="517" rx="12" fill="url(#grid)"/>
+
+  <!-- Nominal guide circle, control polygon and the real four Bézier arcs -->
+  <g transform="translate(880 256) scale(5.5)">
+    <circle cx="40" cy="40" r="32" fill="none" stroke="#c9beb3" stroke-width=".3" stroke-dasharray="1.3 1.1"/>
+    <path d="M57.7 13.1 45.8 5.2 29.6 6.7 19 17.3 6.5 29.8 6.5 50.2 19 62.7 31.5 75.2 51.9 75.2 64.4 62.7 72.6 54.5 74.5 43.6 71.1 34" fill="none" stroke="#a9a097" stroke-width=".25" stroke-dasharray="1 1"/>
+    <path d="M57.7 13.1C45.8 5.2 29.6 6.7 19 17.3" fill="none" stroke="#3d3834" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M19 17.3C6.5 29.8 6.5 50.2 19 62.7" fill="none" stroke="#554841" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M19 62.7C31.5 75.2 51.9 75.2 64.4 62.7" fill="none" stroke="#766052" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M64.4 62.7C72.6 54.5 74.5 43.6 71.1 34" fill="none" stroke="#9b7259" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M22.83 52.94 57.17 27.06" fill="none" stroke="#2c2927" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M18 56.58 72 15.92" fill="none" stroke="#d78247" stroke-width=".3" stroke-dasharray="1.3 1"/>
+    <circle cx="67.68" cy="19.14" r="5" fill="#ff791b" stroke="#fdfbf8" stroke-width=".35"/>
+    <circle cx="40" cy="40" r=".85" fill="#2c2927"/>
+    <g fill="#c45c1a" stroke="#fdfbf8" stroke-width=".25">
+      <circle cx="57.7" cy="13.1" r="1.05"/><circle cx="19" cy="17.3" r="1.05"/>
+      <circle cx="19" cy="62.7" r="1.05"/><circle cx="64.4" cy="62.7" r="1.05"/>
+      <circle cx="71.1" cy="34" r="1.05"/>
+    </g>
+    <g fill="#8d8177">
+      <circle cx="45.8" cy="5.2" r=".55"/><circle cx="29.6" cy="6.7" r=".55"/>
+      <circle cx="6.5" cy="29.8" r=".55"/><circle cx="6.5" cy="50.2" r=".55"/>
+      <circle cx="31.5" cy="75.2" r=".55"/><circle cx="51.9" cy="75.2" r=".55"/>
+      <circle cx="72.6" cy="54.5" r=".55"/><circle cx="74.5" cy="43.6" r=".55"/>
+    </g>
+  </g>
+
+  <!-- Reference center and angular guides -->
+  <path d="M1100 476H1275M1100 476 1252 361" class="leader" stroke-dasharray="4 5"/>
+  <path d="M1186 476A86 86 0 0 0 1168.7 424.2" class="leader"/>
+  <text x="1208" y="446" class="mono orange" font-size="13">37°</text>
+  <text x="1107" y="494" class="mono" font-size="13">O</text>
+  <text x="1272" y="359" class="mono orange" font-size="13" font-weight="700">P / r5</text>
+  <text x="1195" y="308" class="mono orange" font-size="12">S 56.66°</text>
+  <text x="1304" y="462" class="mono orange" font-size="12">E 10.92°</text>
+  <path d="M1194 315 1198 327M1304 455 1271 443" class="leader"/>
+
+  <!-- Readable left-side construction notes -->
+  <text x="554" y="300" font-size="17" font-weight="700">四段连续的贝塞尔弧线</text>
+  <text x="554" y="329" class="muted" font-size="13">① 上弧  ② 左弧  ③ 下弧  ④ 右弧</text>
+  <text x="554" y="353" class="muted" font-size="13">棕色小点：弧线端点；灰点：控制点。</text>
+  <path d="M554 371H820" stroke="#ded6ce"/>
+  <text x="554" y="412" font-size="17" font-weight="700">未闭合角与斜线</text>
+  <text x="554" y="441" class="mono muted" font-size="13">S → E 夹角 45.74°</text>
+  <text x="554" y="464" class="mono muted" font-size="13">斜线 (22.83,52.94) → (57.17,27.06)</text>
+  <text x="554" y="487" class="mono muted" font-size="13">穿过 O · 轴线角度 37° · 线宽 3.2</text>
+  <path d="M554 505H820" stroke="#ded6ce"/>
+  <text x="554" y="545" font-size="17" font-weight="700">橙点与轨道</text>
+  <text x="554" y="574" class="mono muted" font-size="13">P (67.68,19.14) · 半径 5</text>
+  <text x="554" y="597" class="mono muted" font-size="13">OP 半径 34.66 · 方位角 37°</text>
+  <text x="554" y="620" class="mono muted" font-size="13">点心位于斜线延长线上</text>
+  <path d="M554 639H820" stroke="#ded6ce"/>
+  <text x="554" y="677" class="muted" font-size="13">虚线正圆 O(40,40)、R32 仅作构形参考。</text>
+  <text x="554" y="700" class="muted" font-size="13">实际轨道保留四段手工调节的曲率。</text>
+
+  <!-- Four exact arc cards -->
+  <rect x="60" y="807" width="353" height="268" rx="18" fill="#fdfbf8" stroke="#ded6ce"/>
+  <rect x="435" y="807" width="353" height="268" rx="18" fill="#fdfbf8" stroke="#ded6ce"/>
+  <rect x="810" y="807" width="353" height="268" rx="18" fill="#fdfbf8" stroke="#ded6ce"/>
+  <rect x="1185" y="807" width="355" height="268" rx="18" fill="#fdfbf8" stroke="#ded6ce"/>
+
+  <text x="85" y="844" class="mono orange" font-size="12" font-weight="700">① / UPPER CURVE</text>
+  <text x="85" y="877" font-size="21" font-weight="700">上弧 · 76.12°</text>
+  <text x="85" y="906" class="mono muted" font-size="13">S (57.7,13.1) → J₁ (19,17.3)</text>
+  <text x="85" y="938" class="mono" font-size="13">C₁ (45.8,5.2)</text>
+  <text x="85" y="961" class="mono" font-size="13">C₂ (29.6,6.7)</text>
+  <text x="85" y="1008" class="muted" font-size="13">末端切线：225°</text>
+
+  <text x="460" y="844" class="mono orange" font-size="12" font-weight="700">② / LEFT CURVE</text>
+  <text x="460" y="877" font-size="21" font-weight="700">左弧 · 94.46°</text>
+  <text x="460" y="906" class="mono muted" font-size="13">J₁ (19,17.3) → J₂ (19,62.7)</text>
+  <text x="460" y="938" class="mono" font-size="13">C₁ (6.5,29.8)</text>
+  <text x="460" y="961" class="mono" font-size="13">C₂ (6.5,50.2)</text>
+  <text x="460" y="1008" class="muted" font-size="13">衔接切线：225° → 315°</text>
+
+  <text x="835" y="844" class="mono orange" font-size="12" font-weight="700">③ / LOWER CURVE</text>
+  <text x="835" y="877" font-size="21" font-weight="700">下弧 · 89.84°</text>
+  <text x="835" y="906" class="mono muted" font-size="13">J₂ (19,62.7) → J₃ (64.4,62.7)</text>
+  <text x="835" y="938" class="mono" font-size="13">C₁ (31.5,75.2)</text>
+  <text x="835" y="961" class="mono" font-size="13">C₂ (51.9,75.2)</text>
+  <text x="835" y="1008" class="muted" font-size="13">衔接切线：315° → 45°</text>
+
+  <text x="1210" y="844" class="mono orange" font-size="12" font-weight="700">④ / RIGHT CURVE</text>
+  <text x="1210" y="877" font-size="21" font-weight="700">右弧 · 53.85°</text>
+  <text x="1210" y="906" class="mono muted" font-size="13">J₃ (64.4,62.7) → E (71.1,34)</text>
+  <text x="1210" y="938" class="mono" font-size="13">C₁ (72.6,54.5)</text>
+  <text x="1210" y="961" class="mono" font-size="13">C₂ (74.5,43.6)</text>
+  <text x="1210" y="1008" class="muted" font-size="13">起始切线：45°</text>
+
+  <path d="M60 1104H1540" stroke="#d9d0c7"/>
+  <text x="60" y="1132" class="mono muted" font-size="12">角度约定：以参考中心 O 向右为 0°，逆时针为正。弧段角度为端点的极角差；曲线本身为三次贝塞尔，并非正圆弧。</text>
+  <text x="1540" y="1132" class="mono muted" font-size="12" text-anchor="end">37° ORBIT  ·  2026</text>
+</svg>

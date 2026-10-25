@@ -1,2 +1,108 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+.post-content::after {
+  display: block;
+  clear: both;
+  content: "";
+}
+
+.post-content figure[data-figure-image] {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin-block: 24px;
+}
+
+.post-content figure[data-figure-image][data-size="33"] {
+  width: 33.333%;
+}
+
+.post-content figure[data-figure-image][data-size="50"] {
+  width: 50%;
+}
+
+.post-content figure[data-figure-image][data-size="67"] {
+  width: 66.667%;
+}
+
+.post-content figure[data-figure-image][data-size="100"] {
+  width: 100%;
+}
+
+.post-content figure[data-figure-image][data-layout="block-left"] {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.post-content figure[data-figure-image][data-layout="block-center"] {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.post-content figure[data-figure-image][data-layout="block-right"] {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+.post-content figure[data-figure-image][data-layout="wrap-left"] {
+  float: left;
+  margin: 0.35em 1.5em 1em 0;
+}
+
+.post-content figure[data-figure-image][data-layout="wrap-right"] {
+  float: right;
+  margin: 0.35em 0 1em 1.5em;
+}
+
+.post-content figure[data-figure-image] img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.post-content figure[data-figure-image] figcaption {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.post-content [data-text-style][data-variant="small"] {
+  font-size: 0.9em;
+}
+
+.post-content [data-text-style][data-variant="lead"] {
+  font-size: 1.18em;
+  line-height: 1.7;
+}
+
+.post-content [data-text-style][data-variant="note"] {
+  font-size: 0.86em;
+  line-height: 1.65;
+}
+
+.post-content [data-text-style][data-tone="muted"] {
+  color: var(--muted, #77808f);
+}
+
+.post-content [data-text-style][data-tone="accent"] {
+  color: var(--accent, #4f8cff);
+}
+
+.post-content [data-text-style][data-align="center"] {
+  text-align: center;
+}
+
+.post-content [data-text-style][data-align="right"] {
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .post-content figure[data-figure-image],
+  .post-content figure[data-figure-image][data-size],
+  .post-content figure[data-figure-image][data-layout] {
+    float: none;
+    width: 100%;
+    margin: 20px 0;
+  }
+}

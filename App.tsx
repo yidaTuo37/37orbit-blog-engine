@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import ArticleDetail from './pages/ArticleDetail';
-import { DiaryPage, FramesPage, ProjectDetailPage, ProjectsPage } from './pages/CollectionPage';
+import LayoutDemo from './pages/LayoutDemo';
 
 //
 const App: React.FC = () => {
@@ -23,33 +20,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const renderRoute = () => {
-    if (route.startsWith('#/article/')) {
-      const slug = route.replace('#/article/', '');
-      return <ArticleDetail slug={slug} />;
-    }
-
-    if (route.startsWith('#/projects/')) {
-      const id = route.replace('#/projects/', '');
-      return <ProjectDetailPage id={id} />;
-    }
-
-    switch (route) {
-      case '#/projects':
-        return <ProjectsPage />;
-      case '#/frames':
-        return <FramesPage />;
-      case '#/diary':
-        return <DiaryPage />;
-      case '#/':
-      default:
-        return <Home />;
-    }
-  };
-
-  return (
-    route === '#/' ? renderRoute() : <Layout>{renderRoute()}</Layout>
-  );
+  return <LayoutDemo route={route} />;
 };
 
 export default App;

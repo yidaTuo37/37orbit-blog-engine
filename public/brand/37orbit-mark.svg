@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none" role="img" aria-labelledby="title">
+  <title id="title">37° Orbit</title>
+  <path d="M57.7 13.1C45.8 5.2 29.6 6.7 19 17.3C6.5 29.8 6.5 50.2 19 62.7s32.9 12.5 45.4 0C72.6 54.5 74.5 43.6 71.1 34" stroke="#2B2927" stroke-width="4.5" stroke-linecap="round" />
+  <path d="M22.83 52.94 57.17 27.06" stroke="#2B2927" stroke-width="3.2" stroke-linecap="round" />
+  <circle cx="67.68" cy="19.14" r="5" fill="#FF791B" />
+</svg>

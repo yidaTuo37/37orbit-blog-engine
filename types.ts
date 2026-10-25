@@ -1,29 +1,37 @@
 // src/types.ts
 
-export interface Post {
+export interface Media {
+  url: string;
+  alternativeText?: string;
+}
+
+export type PostCategory = string;
+export type HomepageSlot = string;
+
+export interface Article {
   id: number;
   slug: string;
   title: string;
   summary: string;
   tags: string[];
-  category: string;
-  homepage_slot: string;
-  featured: boolean;
-  sort_order: number;
+  category: PostCategory;
   cover: string;
-  status: 'draft' | 'published';
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   content?: string;
   html?: string;
 }
 
+export interface Post extends Article {
+  homepage_slot: HomepageSlot;
+  featured: boolean;
+  sort_order: number;
+  status: 'published';
+}
+
 export interface HomepageContent {
   mainWork: Post | null;
-  frames: {
-    frameA: Post | null;
-    frameB: Post | null;
-  };
+  frames: { frameA: Post | null; frameB: Post | null };
   wallLabels: Post[];
 }
 
@@ -47,6 +55,25 @@ export interface AnnualArticle {
   excerpt: string;
   content: string;   // HTML string
   imageUrls?: string[]; // extracted image URLs for preloading
+}
+
+// 影像作品(本地数据,见 data/frames.ts)
+export interface Frame {
+  id: string;
+  title?: string;       // 首页不展示标题,详情可用
+  cover: string;        // 封面图路径,如 /annual/2025/xxx.jpeg
+  href?: string;        // 可选外链
+  date?: string;
+}
+
+// 项目作品(本地数据,见 data/projects.ts)
+export interface Project {
+  id: string;
+  title: string;
+  cover: string;        // 封面图路径
+  href?: string;        // 项目链接/详情
+  desc?: string;
+  date?: string;
 }
 
 export interface TimelineNodeProps {
