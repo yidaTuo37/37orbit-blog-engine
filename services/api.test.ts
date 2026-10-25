@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cmsService } from './api';
+import { cmsService, describeCmsError } from './api';
 
 const orbitPost = {
   id: 12,
@@ -17,7 +17,7 @@ const orbitPost = {
   updated_at: '2026-09-04T01:00:00.000Z',
 };
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe('cmsService.getArticleBySlug', () => {
   it('rejects a default detail response without rendered HTML', async () => {
@@ -36,4 +36,20 @@ describe('cmsService.getArticles', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
     await expect(cmsService.getArticles()).rejects.toThrow('HTTP 404');
   });
+
+  it('bounds a stalled CMS request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ items: [], total: 0, page: 1, pageSize: 100 }) });
+    vi.stubGlobal('fetch', fetchMock);
+    const timeout = vi.spyOn(AbortSignal, 'timeout');
+
+    await cmsService.getArticles();
+
+    expect(timeout).toHaveBeenCalledWith(10000);
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/posts'), expect.objectContaining({ signal: expect.any(AbortSignal) }));
+  });
+});
+
+it('explains a CMS timeout in Chinese', () => {
+  expect(describeCmsError).toBeTypeOf('function');
+  expect(describeCmsError(new DOMException('signal timed out', 'TimeoutError'))).toBe('连接 CMS 超时，请稍后重试');
 });

@@ -68,3 +68,13 @@
 .orbit-image-lightbox img{max-width:100%;max-height:90vh;object-fit:contain}
 .orbit-image-lightbox button{position:absolute;right:20px;top:12px;background:transparent;border:0;color:white;font-size:36px;cursor:pointer}
 @media(max-width:700px){.orbit-article{padding:28px 22px 75px}.orbit-article-header{padding:48px 0 30px}.orbit-article-content{font-size:15px;margin-top:38px}}
+
+/* The empty visual and missing-cover state contain no archived photography. */
+.orbit-hero-graphic{background:radial-gradient(circle at 56% 46%,#5a5049 0,#3b3531 52%,#292725 100%)}
+.orbit-hero-graphic:before{content:"";position:absolute;width:75%;aspect-ratio:1;border:1px solid #f4f0e933;border-radius:50%;left:12%;top:5%;box-shadow:0 0 0 80px #f4f0e908,0 0 0 160px #f4f0e905}
+.orbit-hero-caption{position:absolute;left:30px;bottom:30px;color:#f4f0e9;font:700 10px Manrope,sans-serif;letter-spacing:.2em;z-index:1}
+.orbit-media-placeholder{height:100%;min-height:66px;display:grid;place-items:center;background:linear-gradient(145deg,#e8e1d7,#d9d0c3);color:#837367}
+.orbit-media-placeholder .orbit-logo-mark{width:42px;height:42px;opacity:.72}
+.orbit-journey-teaser .orbit-media-placeholder{height:66px}
+.orbit-project-row .orbit-media-placeholder{height:72px}
+@media(max-width:700px){.orbit-project-row .orbit-media-placeholder{height:55px}}

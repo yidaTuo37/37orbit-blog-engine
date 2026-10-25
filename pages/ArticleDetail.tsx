@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { cmsService, contentMediaOrigin, getMediaURL } from '../services/api';
+import { cmsService, contentMediaOrigin, describeCmsError, getMediaURL } from '../services/api';
 import { rewriteCmsMediaUrls, sanitizeCmsHtml } from '../services/contentSource';
 import type { Post } from '../types';
 
@@ -10,14 +10,16 @@ export default function ArticleDetail({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [coverFailed, setCoverFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError(null);
+    setCoverFailed(false);
     cmsService.getArticleBySlug(articleSlug)
       .then((post) => { if (active) setArticle(post); })
-      .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : '网络错误'); })
+      .catch((cause) => { if (active) setError(describeCmsError(cause)); })
       .finally(() => { active && setLoading(false); });
     return () => { active = false; };
   }, [articleSlug]);
@@ -49,14 +51,7 @@ export default function ArticleDetail({ slug }: { slug: string }) {
         {article.summary && <p>{article.summary}</p>}
         <small>阅读约 {readingMinutes} 分钟</small>
       </header>
-      {coverUrl && <button className="orbit-article-cover" onClick={(event) => setPreviewImage(event.currentTarget.querySelector('img')?.currentSrc || coverUrl)} aria-label="查看封面大图"><img src={coverUrl} alt={article.title} onError={(event) => {
-        const image = event.currentTarget;
-        const archived = article.cover?.startsWith('/media/') ? `/cms${article.cover}` : null;
-        const fallback = '/annual/2025/thumbs/IMG_1116.jpg';
-        const current = image.getAttribute('src');
-        if (archived && current !== archived && current !== fallback) image.src = archived;
-        else if (current !== fallback) image.src = fallback;
-      }} /></button>}
+      {coverUrl && !coverFailed && <button className="orbit-article-cover" onClick={() => setPreviewImage(coverUrl)} aria-label="查看封面大图"><img src={coverUrl} alt={article.title} onError={() => setCoverFailed(true)} /></button>}
       <div className="post-content orbit-article-content" dangerouslySetInnerHTML={{ __html: html }} />
     </article>
     {previewImage && <div className="orbit-image-lightbox" onClick={() => setPreviewImage(null)} role="presentation"><button onClick={() => setPreviewImage(null)} aria-label="关闭图片预览">×</button><img src={previewImage} alt={article.title} /></div>}

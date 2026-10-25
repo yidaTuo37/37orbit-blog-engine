@@ -11,6 +11,11 @@ import {
 import type { HomepageContent, SiteSettings } from '../types';
 
 const API_URL = getContentApiUrl(import.meta.env.VITE_CONTENT_API_URL as string | undefined);
+const fetchCms = (url: string) => fetch(url, { signal: AbortSignal.timeout(10000) });
+export const describeCmsError = (cause: unknown): string =>
+  cause instanceof Error
+    ? cause.name === 'TimeoutError' ? '连接 CMS 超时，请稍后重试' : cause.message
+    : '网络错误';
 /**
  * Convert a root-relative Orbit media URL to the configured public API origin.
  */
@@ -24,7 +29,7 @@ export const getMediaURL = (url?: string | null): string => {
  */
 export const cmsService = {
   async getArticles() {
-    const res = await fetch(`${getContentApiEndpoint(API_URL, '/posts')}?page=1&pageSize=100`);
+    const res = await fetchCms(`${getContentApiEndpoint(API_URL, '/posts')}?page=1&pageSize=100`);
 
     if (!res.ok) throw new Error(`Failed to fetch posts: HTTP ${res.status}`);
 
@@ -34,7 +39,7 @@ export const cmsService = {
   },
 
   async getArticleBySlug(slug: string) {
-    const res = await fetch(getContentApiEndpoint(API_URL, `/posts/${encodeURIComponent(slug)}`));
+    const res = await fetchCms(getContentApiEndpoint(API_URL, `/posts/${encodeURIComponent(slug)}`));
 
     if (!res.ok) {
       throw new Error(`Failed to fetch article: ${res.status}`);
@@ -46,7 +51,7 @@ export const cmsService = {
   },
 
   async getHomepage(): Promise<HomepageContent> {
-    const res = await fetch(getContentApiEndpoint(API_URL, '/homepage'));
+    const res = await fetchCms(getContentApiEndpoint(API_URL, '/homepage'));
     if (!res.ok) throw new Error(`Failed to fetch homepage: ${res.status}`);
     const homepage = await res.json();
     if (!isHomepageContent(homepage)) throw new Error('Invalid Orbit homepage response');
@@ -54,7 +59,7 @@ export const cmsService = {
   },
 
   async getSettings(): Promise<SiteSettings> {
-    const res = await fetch(getContentApiEndpoint(API_URL, '/settings'));
+    const res = await fetchCms(getContentApiEndpoint(API_URL, '/settings'));
     if (!res.ok) throw new Error(`Failed to fetch settings: ${res.status}`);
     const settings = await res.json();
     if (!isSiteSettings(settings)) throw new Error('Invalid Orbit settings response');
