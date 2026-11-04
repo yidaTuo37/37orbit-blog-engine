@@ -9,17 +9,19 @@ import './LayoutDemo.css';
    1. 基础配置与辅助函数 (Configuration & Helpers)
    ========================================================================== */
 
-type View = 'home' | 'photos' | 'journey' | 'projects';
+type View = string; // 'home' 或某个分类 slug
 
-/** 导航页面默认中文名称（CMS 未返回分类区时兜底） */
-const defaultNavLabels: Record<View, string> = {
-  home: '首页',
-  photos: '相片',
-  journey: '日记',
-  projects: '项目',
+/** 旧路由别名 → 分类 slug（兼容已有链接） */
+const legacyRouteMap: Record<string, string> = {
+  photos: 'frame',
+  journey: 'diary',
+  projects: 'project',
 };
 
-/** 站点级兜底文案（CMS 不可达时仍保持原视觉），见 services/defaultSettings.ts */
+/** 导航页面默认中文名称（CMS 未返回分类区时兜底） */
+const defaultNavLabels: Record<string, string> = {
+  home: '首页',
+};
 
 /** 依据分类区 slug 取可编辑名字，找不到时用兜底 */
 function categoryName(categories: Category[], slug: string, fallback: string): string {
@@ -27,12 +29,9 @@ function categoryName(categories: Category[], slug: string, fallback: string): s
 }
 
 /** 导航页面对应的哈希路由链接 */
-const hrefs: Record<View, string> = {
-  home: '#/',
-  photos: '#/photos',
-  journey: '#/journey',
-  projects: '#/projects',
-};
+function viewHref(view: string): string {
+  return view === 'home' ? '#/' : `#/${view}`;
+}
 
 /** 生成文章详情页跳转链接 */
 const postHref = (post: Post) => `#/article/${encodeURIComponent(post.slug)}`;
@@ -193,20 +192,21 @@ function Sidebar({
   view,
   isArticle,
   labels,
+  navItems,
   settings,
 }: {
   view: View;
   isArticle: boolean;
-  labels: Record<View, string>;
+  labels: Record<string, string>;
+  navItems: string[];
   settings: SiteSettings;
 }) {
-  const navItems: View[] = ['home', 'photos', 'journey', 'projects'];
   const sidebarLinks = parseSidebarLinks(settings.sidebar_links);
 
   return (
     <aside className="orbit-sidebar">
       {/* --- 顶部品牌 Logo --- */}
-      <a className="orbit-brand" href={hrefs.home} aria-label={`${settings.brand_name} ${settings.brand_sub} 首页`}>
+      <a className="orbit-brand" href='#/' aria-label={`${settings.brand_name} ${settings.brand_sub} 首页`}>
         {settings.brand_logo_image ? (
           <img
             src={getMediaURL(settings.brand_logo_image)}
@@ -232,7 +232,7 @@ function Sidebar({
           return (
             <a
               key={item}
-              href={hrefs[item]}
+              href={viewHref(item)}
               className={isActive ? 'active' : ''}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -301,7 +301,7 @@ function Footer({ settings }: { settings: SiteSettings }) {
     <footer className="orbit-footer">
       <strong>{settings.footer_brand}</strong>
       <span>{settings.footer_slogan}</span>
-      <a href={hrefs.home}>{settings.footer_back_top}</a>
+      <a href='#/'>{settings.footer_back_top}</a>
     </footer>
   );
 }
@@ -314,12 +314,13 @@ function MobileNav({
   view,
   isArticle,
   labels,
+  navItems,
 }: {
   view: View;
   isArticle: boolean;
-  labels: Record<View, string>;
+  labels: Record<string, string>;
+  navItems: string[];
 }) {
-  const navItems: View[] = ['home', 'photos', 'journey', 'projects'];
 
   return (
     <nav className="orbit-mobile-nav" aria-label="移动端页面导航">
@@ -328,7 +329,7 @@ function MobileNav({
         return (
           <a
             key={item}
-            href={hrefs[item]}
+            href={viewHref(item)}
             className={isActive ? 'active' : ''}
           >
             {labels[item]}
@@ -417,7 +418,7 @@ function HomeView({
           index="01"
           note={settings.home_photos_note}
           title={settings.home_photos_title}
-          link={hrefs.photos}
+          link={viewHref('frame')}
         />
 
         {/* 前 3 张精选照片卡片展示 */}
@@ -462,7 +463,7 @@ function HomeView({
           index="02"
           note={settings.home_stories_note}
           title={settings.home_stories_title}
-          link={hrefs.journey}
+          link={viewHref('diary')}
         />
 
         {/* 前 3 篇最新文章条目展示 */}
@@ -710,6 +711,92 @@ function ProjectsView({
   );
 }
 
+/**
+ * 4.5 【通用分类视图 CategoryView】
+ * 页面文案与布局（grid / list）全部来自 CMS「分类区」的 settings。
+ */
+function CategoryView({
+  category,
+  posts,
+  categories,
+  settings,
+  loading,
+  error,
+}: {
+  category: Category;
+  posts: Post[];
+  categories: Category[];
+  settings: SiteSettings;
+  loading: boolean;
+  error: string | null;
+}) {
+  const page = category.settings;
+  return (
+    <>
+      <div className="orbit-page-intro">
+        <span className="orbit-kicker">{page.kicker}</span>
+        <h1 style={{ whiteSpace: 'pre-line' }}>{page.title}</h1>
+        <p style={{ whiteSpace: 'pre-line' }}>{page.intro}</p>
+        <div className="orbit-intro-line">
+          <span>{page.intro_left}</span>
+          <span>{page.intro_right}</span>
+        </div>
+      </div>
+
+      <section className="orbit-section">
+        <SectionHeading index="01" note={page.section_note} title={page.section_title} />
+
+        {page.layout === 'list' ? (
+          <div className="orbit-project-list">
+            {posts.map((post, index) => (
+              <a key={post.id} href={postHref(post)} className="orbit-project-row">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <PostImage post={post} />
+                <h3>{post.title}</h3>
+                <small>
+                  {post.category
+                    ? categoryName(categories, post.category, post.category)
+                    : settings.article_kicker_fallback}
+                </small>
+                <Arrow diagonal />
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="orbit-story-grid">
+            {posts.map((post, index) => (
+              <a key={post.id} href={postHref(post)} className="orbit-story-card">
+                <div className="orbit-story-image">
+                  <PostImage post={post} />
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                </div>
+                <div className="orbit-story-body">
+                  <small>
+                    {post.category
+                      ? categoryName(categories, post.category, post.category)
+                      : settings.article_kicker_fallback}
+                  </small>
+                  <h3>{post.title}</h3>
+                  <p>{post.summary}</p>
+                  <span className="orbit-story-arrow">
+                    <Arrow diagonal />
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+
+        <ArticleStatus
+          loading={loading}
+          error={error}
+          empty={posts.length ? undefined : settings.empty_articles_label}
+        />
+      </section>
+    </>
+  );
+}
+
 /* ==========================================================================
    5. 主布局入口组件 (LayoutDemo Main Component)
    ========================================================================== */
@@ -755,39 +842,31 @@ export default function LayoutDemo({ route }: { route: string }) {
     };
   }, []);
 
-  // --- 导航分类区名字（来自 CMS，可改名） ---
-  const navLabels: Record<View, string> = {
+  // --- 动态导航：首页 + 所有分类 ---
+  const navItems = ['home', ...categories.map((category) => category.slug)];
+  const navLabels: Record<string, string> = {
     home: defaultNavLabels.home,
-    photos: categoryName(categories, 'frame', defaultNavLabels.photos),
-    journey: categoryName(categories, 'diary', defaultNavLabels.journey),
-    projects: categoryName(categories, 'project', defaultNavLabels.projects),
+    ...Object.fromEntries(categories.map((category) => [category.slug, category.name])),
   };
 
-  // --- 路由与分类解析 ---
+  // --- 路由解析（兼容旧链接 #/photos、#/journey、#/projects） ---
   const isArticle = route.startsWith('#/article/');
-  const view: View = route.includes('/photos')
-    ? 'photos'
-    : route.includes('/journey')
-      ? 'journey'
-      : route.includes('/projects')
-        ? 'projects'
-        : 'home';
+  const rawView = route.replace(/^#\//, '').split('/')[0] || 'home';
+  const view = legacyRouteMap[rawView] ?? rawView;
+  const activeCategory = categories.find((category) => category.slug === view) ?? null;
 
-  // 依据分类筛选各类内容：
-  // 1) 旅程文章（排除了项目与照片）
-  const journeyPosts = posts.filter(
-    (post) => post.category !== 'project' && post.category !== 'frame'
-  );
-  // 2) 正在进行的项目
-  const projectPosts = posts.filter((post) => post.category === 'project');
-  // 3) 独立影像/照片
+  // --- 严格按分类筛选；未分类文章在首页「最近」兜底 ---
+  const uncategorizedPosts = posts.filter((post) => !post.category);
   const framePosts = posts.filter((post) => post.category === 'frame');
+  const categoryPosts = activeCategory
+    ? posts.filter((post) => post.category === activeCategory.slug)
+    : [];
 
   // --- 整体页面结构渲染 ---
   return (
     <div className="orbit-demo">
       {/* 1. 【左侧固定侧边栏】：Logo、主导航、底部格言 */}
-      <Sidebar view={view} isArticle={isArticle} labels={navLabels} settings={settings} />
+      <Sidebar view={view} isArticle={isArticle} labels={navLabels} navItems={navItems} settings={settings} />
 
       {/* 2. 【右侧主内容区】 */}
       <div className="orbit-main">
@@ -799,38 +878,21 @@ export default function LayoutDemo({ route }: { route: string }) {
           {isArticle ? (
             /* 文章详情页 */
             <ArticleDetail slug={route.slice('#/article/'.length)} settings={settings} />
-          ) : view === 'home' ? (
-            /* 首页视图（首屏 Hero / 照片集 / 最近文章） */
+          ) : view === 'home' || !activeCategory ? (
+            /* 首页视图（未分类文章作为「最近」兜底） */
             <HomeView
-              posts={posts}
+              posts={uncategorizedPosts}
               frames={framePosts}
               settings={settings}
               categories={categories}
               loading={loading}
               error={error}
             />
-          ) : view === 'photos' ? (
-            /* 照片库视图（“那些被留住的瞬间。”） */
-            <PhotosView
-              posts={framePosts}
-              categories={categories}
-              settings={settings}
-              loading={loading}
-              error={error}
-            />
-          ) : view === 'journey' ? (
-            /* 旅程视图（“走过的路，写成故事。”） */
-            <JourneyView
-              posts={journeyPosts}
-              categories={categories}
-              settings={settings}
-              loading={loading}
-              error={error}
-            />
           ) : (
-            /* 项目视图（“想法落地，继续生长。”） */
-            <ProjectsView
-              posts={projectPosts}
+            /* 分类页（严格按分类过滤，文案来自 CMS「分类区」） */
+            <CategoryView
+              category={activeCategory}
+              posts={categoryPosts}
               categories={categories}
               settings={settings}
               loading={loading}
@@ -844,7 +906,7 @@ export default function LayoutDemo({ route }: { route: string }) {
       </div>
 
       {/* 3. 【移动端底部固定悬浮导航】：仅在小屏幕时可见 */}
-      <MobileNav view={view} isArticle={isArticle} labels={navLabels} />
+      <MobileNav view={view} isArticle={isArticle} labels={navLabels} navItems={navItems} />
     </div>
   );
 }

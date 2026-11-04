@@ -1,4 +1,4 @@
-import type { SiteSettings } from '../types';
+import type { CategoryPageSettings, SiteSettings } from '../types';
 
 /**
  * 站点级默认文案（与 CMS `defaultSiteSettings` 保持一致）。
@@ -68,4 +68,16 @@ export const defaultSiteSettings: SiteSettings = {
   curator_label: 'Curator Note',
   curator_body: '不是把项目、写作、影像做成三块平权模块，而是像策展一样先确定主轴，再安排旁证。',
   curator_meta: '37ORBIT / Homepage Study / v2',
+};
+
+/** 分类页面文案兜底（CMS 返回的 settings 缺字段时使用）。 */
+export const defaultCategoryPageSettings: CategoryPageSettings = {
+  kicker: '',
+  title: '',
+  intro: '',
+  intro_left: '',
+  intro_right: '',
+  section_note: '',
+  section_title: '',
+  layout: 'grid',
 };

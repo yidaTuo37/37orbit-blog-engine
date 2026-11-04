@@ -110,11 +110,24 @@ export interface SiteSettings {
   curator_meta: string;
 }
 
+/** 分类页面文案（来自 CMS「分类区」，可在后台编辑）。 */
+export interface CategoryPageSettings {
+  kicker: string;
+  title: string;
+  intro: string;
+  intro_left: string;
+  intro_right: string;
+  section_note: string;
+  section_title: string;
+  layout: 'grid' | 'list';
+}
+
 /** 首页「分类区」：slug 是稳定键，name 是首页展示的可编辑名字。 */
 export interface Category {
   slug: string;
   name: string;
   count?: number;
+  settings: CategoryPageSettings;
 }
 
 export interface AnnualArticle {

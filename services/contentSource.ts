@@ -2,7 +2,8 @@ import rehypeParse from 'rehype-parse';
 import rehypeSanitize, { defaultSchema, type Options as SanitizeSchema } from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
 import { unified } from 'unified';
-import type { Category, HomepageContent, HomepageSlot, Post, PostCategory, SiteSettings } from '../types';
+import type { Category, CategoryPageSettings, HomepageContent, HomepageSlot, Post, PostCategory, SiteSettings } from '../types';
+import { defaultCategoryPageSettings } from './defaultSettings';
 
 export interface CmsPost {
   id: number;
@@ -39,6 +40,7 @@ export interface CmsCategory {
   slug: string;
   name: string;
   count?: number;
+  settings?: Partial<CategoryPageSettings>;
 }
 
 export interface CmsCategoriesResponse {
@@ -146,7 +148,8 @@ function isCategory(value: unknown): value is CmsCategory {
   return isRecord(value)
     && typeof value.slug === 'string'
     && typeof value.name === 'string'
-    && (value.count === undefined || typeof value.count === 'number');
+    && (value.count === undefined || typeof value.count === 'number')
+    && (value.settings === undefined || isRecord(value.settings));
 }
 
 export function isCategoriesResponse(value: unknown): value is CmsCategoriesResponse {
@@ -156,7 +159,12 @@ export function isCategoriesResponse(value: unknown): value is CmsCategoriesResp
 }
 
 export function normalizeCategories(response: CmsCategoriesResponse): Category[] {
-  return response.items.map(({ slug, name, count }) => ({ slug, name, count }));
+  return response.items.map(({ slug, name, count, settings }) => ({
+    slug,
+    name,
+    count,
+    settings: { ...defaultCategoryPageSettings, ...(settings ?? {}) },
+  }));
 }
 
 export function normalizeCmsPost(post: CmsPost): Post {
