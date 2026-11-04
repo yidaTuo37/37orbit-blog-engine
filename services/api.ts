@@ -1,14 +1,16 @@
 import { getContentApiEndpoint, getContentApiUrl, getContentMediaOrigin } from './cmsConfig';
 import {
+  isCategoriesResponse,
   isHomepageContent,
   isOrbitPostDetail,
   isOrbitPostsResponse,
   isSiteSettings,
+  normalizeCategories,
   normalizeCmsPost,
   normalizeHomepageContent,
   resolveCmsMediaUrl,
 } from './contentSource';
-import type { HomepageContent, SiteSettings } from '../types';
+import type { Category, HomepageContent, SiteSettings } from '../types';
 
 const API_URL = getContentApiUrl(import.meta.env.VITE_CONTENT_API_URL as string | undefined);
 const fetchCms = (url: string) => fetch(url, { signal: AbortSignal.timeout(10000) });
@@ -64,6 +66,14 @@ export const cmsService = {
     const settings = await res.json();
     if (!isSiteSettings(settings)) throw new Error('Invalid Orbit settings response');
     return settings;
+  },
+
+  async getCategories(): Promise<Category[]> {
+    const res = await fetchCms(getContentApiEndpoint(API_URL, '/categories'));
+    if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
+    const categories = await res.json();
+    if (!isCategoriesResponse(categories)) throw new Error('Invalid Orbit categories response');
+    return normalizeCategories(categories);
   },
 };
 

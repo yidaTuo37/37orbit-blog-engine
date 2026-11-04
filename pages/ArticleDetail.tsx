@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { cmsService, contentMediaOrigin, describeCmsError, getMediaURL } from '../services/api';
 import { rewriteCmsMediaUrls, sanitizeCmsHtml } from '../services/contentSource';
-import type { Post } from '../types';
+import type { Post, SiteSettings } from '../types';
 
-export default function ArticleDetail({ slug }: { slug: string }) {
+export default function ArticleDetail({ slug, settings }: { slug: string; settings: SiteSettings }) {
   const articleSlug = decodeURIComponent(slug.split('?')[0]).replace(/\/+$/, '');
   const [article, setArticle] = useState<Post | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,22 +34,23 @@ export default function ArticleDetail({ slug }: { slug: string }) {
     return () => window.removeEventListener('scroll', updateProgress);
   }, []);
 
-  if (loading) return <div className="orbit-article-status">正在读取文章…</div>;
-  if (error || !article) return <div className="orbit-article-status" role="alert">文章无法加载：{error || '未找到这篇文章'}</div>;
+  if (loading) return <div className="orbit-article-status">{settings.article_loading_label}</div>;
+  if (error || !article) return <div className="orbit-article-status" role="alert">{settings.article_error_label}：{error || settings.article_not_found_label}</div>;
 
   const coverUrl = getMediaURL(article.cover);
   const html = sanitizeCmsHtml(rewriteCmsMediaUrls(contentMediaOrigin, article.html ?? ''));
   const readingMinutes = Math.max(1, Math.round(html.replace(/<[^>]*>/g, ' ').length / 400));
+  const readingLabel = settings.article_reading_template.replace('{minutes}', String(readingMinutes));
 
   return <>
     <div className="orbit-reading-progress" style={{ width: `${progress}%` }} />
     <article className="orbit-article">
-      <a className="orbit-article-back" href="#/journey">← 返回文章目录</a>
+      <a className="orbit-article-back" href="#/journey">← {settings.article_back_label}</a>
       <header className="orbit-article-header">
-        <span className="orbit-kicker">{article.category || 'ARTICLE'} / {new Date(article.updatedAt).toLocaleDateString('zh-CN')}</span>
+        <span className="orbit-kicker">{(article.category || settings.article_kicker_fallback)} / {new Date(article.updatedAt).toLocaleDateString('zh-CN')}</span>
         <h1>{article.title}</h1>
         {article.summary && <p>{article.summary}</p>}
-        <small>阅读约 {readingMinutes} 分钟</small>
+        <small>{readingLabel}</small>
       </header>
       {coverUrl && !coverFailed && <button className="orbit-article-cover" onClick={() => setPreviewImage(coverUrl)} aria-label="查看封面大图"><img src={coverUrl} alt={article.title} onError={() => setCoverFailed(true)} /></button>}
       <div className="post-content orbit-article-content" dangerouslySetInnerHTML={{ __html: html }} />

@@ -36,15 +36,87 @@ export interface HomepageContent {
 }
 
 export interface SiteSettings {
+  // 品牌与 Logo
+  brand_logo_image: string;
+  brand_name: string;
+  brand_sub: string;
+  brand_full: string;
+  // 侧边栏
+  sidebar_slogan: string;
+  sidebar_copyright: string;
+  // 顶栏
+  topbar_prefix: string;
+  topbar_article_label: string;
+  topbar_read_label: string;
+  // 首屏 Hero
   home_eyebrow: string;
   home_title: string;
   home_intro: string;
+  home_hero_image: string;
+  home_cta_label: string;
+  home_cta_href: string;
+  home_hero_meta_start: string;
+  home_hero_meta_end: string;
+  home_hero_watermark: string;
+  // 首页 · 照片集区块
+  home_photos_note: string;
+  home_photos_title: string;
+  // 首页 · 最近文章区块
+  home_stories_note: string;
+  home_stories_title: string;
+  // 照片库页
+  photos_kicker: string;
+  photos_title: string;
+  photos_intro: string;
+  photos_intro_left: string;
+  photos_intro_right: string;
+  photos_section_note: string;
+  photos_section_title: string;
+  // 日记页
+  journey_kicker: string;
+  journey_title: string;
+  journey_intro: string;
+  journey_intro_left: string;
+  journey_intro_right: string;
+  journey_section_note: string;
+  journey_section_title: string;
+  // 项目页
+  projects_kicker: string;
+  projects_title: string;
+  projects_intro: string;
+  projects_intro_left: string;
+  projects_intro_right: string;
+  projects_section_note: string;
+  projects_section_title: string;
+  // 页脚
+  footer_brand: string;
+  footer_slogan: string;
+  footer_back_top: string;
+  // 文章详情页
+  article_back_label: string;
+  article_kicker_fallback: string;
+  article_reading_template: string;
+  article_loading_label: string;
+  article_error_label: string;
+  article_not_found_label: string;
+  // 空状态
+  empty_frames_label: string;
+  empty_articles_label: string;
+  empty_projects_label: string;
+  // 备用布局（展览墙）
   statement_label: string;
   statement_body: string;
   wall_labels_label: string;
   curator_label: string;
   curator_body: string;
   curator_meta: string;
+}
+
+/** 首页「分类区」：slug 是稳定键，name 是首页展示的可编辑名字。 */
+export interface Category {
+  slug: string;
+  name: string;
+  count?: number;
 }
 
 export interface AnnualArticle {

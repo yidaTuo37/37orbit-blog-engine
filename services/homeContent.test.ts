@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { HomepageContent, SiteSettings } from '../types';
+import { defaultSiteSettings } from './defaultSettings';
 import { loadHomeContent } from './homeContent';
 
 const homepage = {
@@ -9,15 +10,10 @@ const homepage = {
 } satisfies HomepageContent;
 
 const settings = {
+  ...defaultSiteSettings,
   home_eyebrow: 'Eyebrow',
   home_title: 'Title',
   home_intro: 'Intro',
-  statement_label: 'Statement',
-  statement_body: 'Body',
-  wall_labels_label: 'Labels',
-  curator_label: 'Curator',
-  curator_body: 'Body',
-  curator_meta: 'Meta',
 } satisfies SiteSettings;
 
 describe('loadHomeContent', () => {

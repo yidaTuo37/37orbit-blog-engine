@@ -2,7 +2,7 @@ import rehypeParse from 'rehype-parse';
 import rehypeSanitize, { defaultSchema, type Options as SanitizeSchema } from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
 import { unified } from 'unified';
-import type { HomepageContent, HomepageSlot, Post, PostCategory, SiteSettings } from '../types';
+import type { Category, HomepageContent, HomepageSlot, Post, PostCategory, SiteSettings } from '../types';
 
 export interface CmsPost {
   id: number;
@@ -33,6 +33,16 @@ export interface CmsPostsResponse {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export interface CmsCategory {
+  slug: string;
+  name: string;
+  count?: number;
+}
+
+export interface CmsCategoriesResponse {
+  items: CmsCategory[];
 }
 
 const textStyleAttributes: NonNullable<SanitizeSchema['attributes']>[string] = [
@@ -114,9 +124,39 @@ export function isOrbitPostsResponse(value: unknown): value is CmsPostsResponse 
 }
 
 export function isSiteSettings(value: unknown): value is SiteSettings {
+  const keys: (keyof SiteSettings)[] = [
+    'brand_logo_image', 'brand_name', 'brand_sub', 'brand_full',
+    'sidebar_slogan', 'sidebar_copyright',
+    'topbar_prefix', 'topbar_article_label', 'topbar_read_label',
+    'home_eyebrow', 'home_title', 'home_intro', 'home_hero_image', 'home_cta_label', 'home_cta_href',
+    'home_hero_meta_start', 'home_hero_meta_end', 'home_hero_watermark',
+    'home_photos_note', 'home_photos_title', 'home_stories_note', 'home_stories_title',
+    'photos_kicker', 'photos_title', 'photos_intro', 'photos_intro_left', 'photos_intro_right', 'photos_section_note', 'photos_section_title',
+    'journey_kicker', 'journey_title', 'journey_intro', 'journey_intro_left', 'journey_intro_right', 'journey_section_note', 'journey_section_title',
+    'projects_kicker', 'projects_title', 'projects_intro', 'projects_intro_left', 'projects_intro_right', 'projects_section_note', 'projects_section_title',
+    'footer_brand', 'footer_slogan', 'footer_back_top',
+    'article_back_label', 'article_kicker_fallback', 'article_reading_template', 'article_loading_label', 'article_error_label', 'article_not_found_label',
+    'empty_frames_label', 'empty_articles_label', 'empty_projects_label',
+    'statement_label', 'statement_body', 'wall_labels_label', 'curator_label', 'curator_body', 'curator_meta',
+  ];
+  return isRecord(value) && keys.every((key) => typeof value[key] === 'string');
+}
+
+function isCategory(value: unknown): value is CmsCategory {
   return isRecord(value)
-    && ['home_eyebrow', 'home_title', 'home_intro', 'statement_label', 'statement_body', 'wall_labels_label', 'curator_label', 'curator_body', 'curator_meta']
-      .every((key) => typeof value[key] === 'string');
+    && typeof value.slug === 'string'
+    && typeof value.name === 'string'
+    && (value.count === undefined || typeof value.count === 'number');
+}
+
+export function isCategoriesResponse(value: unknown): value is CmsCategoriesResponse {
+  return isRecord(value)
+    && Array.isArray(value.items)
+    && value.items.every(isCategory);
+}
+
+export function normalizeCategories(response: CmsCategoriesResponse): Category[] {
+  return response.items.map(({ slug, name, count }) => ({ slug, name, count }));
 }
 
 export function normalizeCmsPost(post: CmsPost): Post {
