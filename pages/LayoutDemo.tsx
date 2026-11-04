@@ -37,6 +37,21 @@ const hrefs: Record<View, string> = {
 /** 生成文章详情页跳转链接 */
 const postHref = (post: Post) => `#/article/${encodeURIComponent(post.slug)}`;
 
+/** 侧边栏底部小列索引链接（来自 CMS「侧边栏链接」设置，JSON 数组） */
+type SidebarLink = { label: string; href: string };
+function parseSidebarLinks(raw: string): SidebarLink[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item) => item && typeof item.label === 'string' && typeof item.href === 'string')
+      .map((item) => ({ label: item.label as string, href: item.href as string }))
+      .filter((item) => item.label && item.href);
+  } catch {
+    return [];
+  }
+}
+
 /* ==========================================================================
    2. 通用 UI 部件 (Common UI Elements & Icons)
    ========================================================================== */
@@ -186,6 +201,7 @@ function Sidebar({
   settings: SiteSettings;
 }) {
   const navItems: View[] = ['home', 'photos', 'journey', 'projects'];
+  const sidebarLinks = parseSidebarLinks(settings.sidebar_links);
 
   return (
     <aside className="orbit-sidebar">
@@ -231,8 +247,19 @@ function Sidebar({
         })}
       </nav>
 
-      {/* --- 底部标语与版权信息 --- */}
+      {/* --- 底部：自定义链接小列 + 标语与版权 --- */}
       <div className="orbit-sidebar-foot">
+        {sidebarLinks.length > 0 && (
+          <ul className="orbit-sidebar-links">
+            {sidebarLinks.map((link) => (
+              <li key={`${link.label}-${link.href}`}>
+                <a href={link.href} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
         <p style={{ whiteSpace: 'pre-line' }}>{settings.sidebar_slogan}</p>
         <small>{settings.sidebar_copyright}</small>
       </div>

@@ -44,6 +44,7 @@ export interface SiteSettings {
   // 侧边栏
   sidebar_slogan: string;
   sidebar_copyright: string;
+  sidebar_links: string; // 侧边栏底部小列索引链接（JSON 数组：[{label, href}]）
   // 顶栏
   topbar_prefix: string;
   topbar_article_label: string;

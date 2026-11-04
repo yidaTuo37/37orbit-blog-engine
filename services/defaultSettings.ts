@@ -11,6 +11,11 @@ export const defaultSiteSettings: SiteSettings = {
   brand_full: '37° Orbit',
   sidebar_slogan: '碎片会落入轨道',
   sidebar_copyright: '© 2023 37° ORBIT',
+  sidebar_links: JSON.stringify([
+    { label: 'X', href: 'https://x.com/yidatuo37' },
+    { label: 'Bilibili', href: 'https://space.bilibili.com/108402088' },
+    { label: 'GitHub', href: 'https://github.com/Erics37' },
+  ]),
   topbar_prefix: 'PERSONAL SPACE',
   topbar_article_label: '文章',
   topbar_read_label: '阅读文章',

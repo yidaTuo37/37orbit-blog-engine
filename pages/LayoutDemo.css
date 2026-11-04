@@ -78,3 +78,9 @@
 .orbit-journey-teaser .orbit-media-placeholder{height:66px}
 .orbit-project-row .orbit-media-placeholder{height:72px}
 @media(max-width:700px){.orbit-project-row .orbit-media-placeholder{height:55px}}
+
+/* 侧边栏底部小列索引链接（来自 CMS「侧边栏链接」设置） */
+.orbit-sidebar-links{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:8px}
+.orbit-sidebar-links a{display:inline-flex;color:#bdb5ae;font-size:11px;letter-spacing:.05em;text-decoration:none;transition:color .2s}
+.orbit-sidebar-links a:hover{color:#f2b08b}
+
