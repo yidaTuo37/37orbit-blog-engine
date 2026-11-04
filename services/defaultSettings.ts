@@ -18,7 +18,6 @@ export const defaultSiteSettings: SiteSettings = {
   ]),
   topbar_prefix: 'PERSONAL SPACE',
   topbar_article_label: '文章',
-  topbar_read_label: '阅读文章',
   home_eyebrow: 'A PERSONAL ARCHIVE · 37° ORBIT',
   home_title: '把经过的世界，\n慢慢收藏。',
   home_intro: '一些照片，一些旅程，一些正在发生的想法。\n这里是我的私人轨道，也是所有故事的起点。',

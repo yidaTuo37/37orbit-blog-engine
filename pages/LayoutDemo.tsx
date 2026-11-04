@@ -288,11 +288,6 @@ function Topbar({
       <span>
         {settings.topbar_prefix} <b>/</b> {isArticle ? settings.topbar_article_label : labels[view]}
       </span>
-
-      {/* 右侧跳转入口 */}
-      <a href={hrefs.journey}>
-        {settings.topbar_read_label} <Arrow diagonal />
-      </a>
     </header>
   );
 }
@@ -379,9 +374,9 @@ function HomeView({
       <section className="orbit-home-hero">
         {/* 左侧文案与交互按钮 */}
         <div className="orbit-hero-copy">
-          {/* 小标签与红点微光 */}
+          {/* 小标签 */}
           <span className="orbit-kicker">
-            <span className="orbit-pulse" /> {settings.home_eyebrow}
+            {settings.home_eyebrow}
           </span>
 
           {/* 首屏主标题 */}
@@ -405,22 +400,14 @@ function HomeView({
         {/* 右侧视效背景图与大水印 */}
         <div className="orbit-hero-visual" aria-hidden="true">
           {settings.home_hero_image ? (
-            <>
-              <img
-                src={getMediaURL(settings.home_hero_image)}
-                alt=""
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-              <span className="orbit-hero-frame">
-                <OrbitMark />
-              </span>
-            </>
+            <img
+              src={getMediaURL(settings.home_hero_image)}
+              alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           ) : (
             <div className="orbit-hero-graphic" style={{ position: 'absolute', inset: 0 }}>
               <span className="orbit-hero-caption">{settings.home_hero_watermark}</span>
-              <span className="orbit-hero-frame">
-                <OrbitMark />
-              </span>
             </div>
           )}
         </div>

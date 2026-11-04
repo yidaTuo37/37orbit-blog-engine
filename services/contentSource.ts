@@ -127,7 +127,7 @@ export function isSiteSettings(value: unknown): value is SiteSettings {
   const keys: (keyof SiteSettings)[] = [
     'brand_logo_image', 'brand_name', 'brand_sub', 'brand_full',
     'sidebar_slogan', 'sidebar_copyright', 'sidebar_links',
-    'topbar_prefix', 'topbar_article_label', 'topbar_read_label',
+    'topbar_prefix', 'topbar_article_label',
     'home_eyebrow', 'home_title', 'home_intro', 'home_hero_image', 'home_cta_label', 'home_cta_href',
     'home_hero_meta_start', 'home_hero_meta_end', 'home_hero_watermark',
     'home_photos_note', 'home_photos_title', 'home_stories_note', 'home_stories_title',

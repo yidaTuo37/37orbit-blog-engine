@@ -48,7 +48,6 @@ export interface SiteSettings {
   // 顶栏
   topbar_prefix: string;
   topbar_article_label: string;
-  topbar_read_label: string;
   // 首屏 Hero
   home_eyebrow: string;
   home_title: string;
