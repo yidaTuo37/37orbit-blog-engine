@@ -385,11 +385,6 @@ function HomeView({
           {/* 首屏导言描述 */}
           <p style={{ whiteSpace: 'pre-line' }}>{settings.home_intro}</p>
 
-          {/* 首屏行动按钮：跳转照片库 */}
-          <a className="orbit-primary-link" href={settings.home_cta_href || hrefs.photos}>
-            {settings.home_cta_label} <Arrow />
-          </a>
-
           {/* 首屏底部元信息 */}
           <div className="orbit-hero-bottom">
             <span>{settings.home_hero_meta_start}</span>

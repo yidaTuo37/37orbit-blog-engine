@@ -22,8 +22,6 @@ export const defaultSiteSettings: SiteSettings = {
   home_title: '把经过的世界，\n慢慢收藏。',
   home_intro: '一些照片，一些旅程，一些正在发生的想法。\n这里是我的私人轨道，也是所有故事的起点。',
   home_hero_image: '',
-  home_cta_label: '开始探索',
-  home_cta_href: '#/photos',
   home_hero_meta_start: 'EST. 2025',
   home_hero_meta_end: 'SCROLL TO EXPLORE ↓',
   home_hero_watermark: '37° / ORBIT',

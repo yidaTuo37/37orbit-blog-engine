@@ -53,8 +53,6 @@ export interface SiteSettings {
   home_title: string;
   home_intro: string;
   home_hero_image: string;
-  home_cta_label: string;
-  home_cta_href: string;
   home_hero_meta_start: string;
   home_hero_meta_end: string;
   home_hero_watermark: string;
