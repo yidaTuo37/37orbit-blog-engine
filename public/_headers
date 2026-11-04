@@ -1,0 +1,13 @@
+# HTML 不缓存，确保部署后立刻拿到新版本
+/index.html
+  Cache-Control: no-store
+
+/
+  Cache-Control: no-store
+
+/*.html
+  Cache-Control: no-store
+
+# 带内容哈希的静态资源可长期缓存
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
