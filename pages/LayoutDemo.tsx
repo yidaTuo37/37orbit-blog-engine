@@ -233,7 +233,6 @@ function Sidebar({
 
       {/* --- 底部标语与版权信息 --- */}
       <div className="orbit-sidebar-foot">
-        <span className="orbit-sidebar-mark">✳</span>
         <p style={{ whiteSpace: 'pre-line' }}>{settings.sidebar_slogan}</p>
         <small>{settings.sidebar_copyright}</small>
       </div>
