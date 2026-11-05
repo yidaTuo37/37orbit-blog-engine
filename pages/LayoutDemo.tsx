@@ -764,24 +764,22 @@ function CategoryView({
           </div>
         ) : (
           <div className="orbit-story-grid">
-            {posts.map((post, index) => (
-              <a key={post.id} href={postHref(post)} className="orbit-story-card">
-                <div className="orbit-story-image">
-                  <PostImage post={post} />
-                  <span>{String(index + 1).padStart(2, '0')}</span>
-                </div>
-                <div className="orbit-story-body">
+            {posts.map((post) => (
+              <a
+                key={post.id}
+                href={postHref(post)}
+                className={`orbit-story-card ${post.cover ? 'has-cover' : 'no-cover'}`}
+              >
+                {post.cover ? <PostImage post={post} /> : null}
+                <span className="orbit-story-caption">
                   <small>
                     {post.category
                       ? categoryName(categories, post.category, post.category)
                       : settings.article_kicker_fallback}
                   </small>
                   <h3>{post.title}</h3>
-                  <p>{post.summary}</p>
-                  <span className="orbit-story-arrow">
-                    <Arrow diagonal />
-                  </span>
-                </div>
+                  {post.cover && post.summary ? <p>{post.summary}</p> : null}
+                </span>
               </a>
             ))}
           </div>

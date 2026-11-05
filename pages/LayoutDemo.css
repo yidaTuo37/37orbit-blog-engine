@@ -84,3 +84,20 @@
 .orbit-sidebar-links a{display:inline-flex;color:#bdb5ae;font-size:11px;letter-spacing:.05em;text-decoration:none;transition:color .2s}
 .orbit-sidebar-links a:hover{color:#f2b08b}
 
+
+/* ===== 文章卡片：照片满铺 + 底部渐变蒙版 + 标题叠加 ===== */
+.orbit-story-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.orbit-story-card{position:relative;display:block;overflow:hidden;min-height:clamp(340px,36vw,480px);background:linear-gradient(155deg,#cfc7ba,#b6ac9d);isolation:isolate}
+.orbit-story-card>img,
+.orbit-story-card>.orbit-media-placeholder{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.orbit-story-card>img{transition:transform .65s ease}
+.orbit-story-card:hover>img{transform:scale(1.045)}
+.orbit-story-card::after{content:"";position:absolute;inset:auto 0 0 0;height:46%;background:linear-gradient(to top,rgba(16,14,12,.88) 0%,rgba(16,14,12,.52) 46%,rgba(16,14,12,0) 100%);z-index:1;pointer-events:none}
+.orbit-story-caption{position:absolute;left:clamp(18px,2vw,26px);right:clamp(18px,2vw,26px);bottom:clamp(18px,2vw,24px);z-index:2;display:block;color:#f7f3ea}
+.orbit-story-caption small{font:700 9px Manrope,sans-serif;letter-spacing:.18em;color:#f2b08b}
+.orbit-story-caption h3{font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(22px,2.4vw,32px);line-height:1.2;margin:8px 0 0;letter-spacing:-.02em}
+.orbit-story-caption p{margin:8px 0 0;font-size:12px;line-height:1.6;color:rgba(247,243,234,.72);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.orbit-story-card.no-cover{background:linear-gradient(155deg,#302b26,#433c34 58%,#332e28)}
+.orbit-story-card.no-cover::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 16%,rgba(209,139,95,.20),transparent 44%);z-index:0}
+.orbit-story-card.no-cover::after{height:55%;background:linear-gradient(to top,rgba(16,14,12,.5),transparent)}
+@media(max-width:900px){.orbit-story-grid{grid-template-columns:1fr}}
