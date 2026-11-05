@@ -423,26 +423,10 @@ function HomeView({
           link="#/snapshots"
         />
 
-        {/* 前 3 张精选照片卡片展示 */}
-        <div className="orbit-collection-strip">
-          {frames.slice(0, 3).map((post, index) => (
-            <a
-              key={post.id}
-              href={postHref(post)}
-              className="orbit-collection-card"
-            >
-              <div className="orbit-collection-image">
-                <PostImage post={post} />
-                <span>{String(index + 1).padStart(2, '0')}</span>
-              </div>
-              <div className="orbit-collection-meta">
-                <div>
-                  <strong>{post.title}</strong>
-                  <small>{post.category ? categoryName(categories, post.category, post.category) : ''}</small>
-                </div>
-                <Arrow diagonal />
-              </div>
-            </a>
+        {/* 照片卡片：全部照片（前 3 张） */}
+        <div className="orbit-story-grid">
+          {frames.slice(0, 3).map((post) => (
+            <PostCard key={post.id} post={post} categories={categories} settings={settings} />
           ))}
         </div>
 
@@ -468,22 +452,10 @@ function HomeView({
           link="#/latest"
         />
 
-        {/* 前 3 篇最新文章条目展示 */}
-        <div className="orbit-journey-teasers">
-          {posts.slice(0, 3).map((post, index) => (
-            <a
-              key={post.id}
-              href={postHref(post)}
-              className="orbit-journey-teaser"
-            >
-              <span>0{index + 1}</span>
-              <PostImage post={post} />
-              <div>
-                <small>{post.category ? categoryName(categories, post.category, post.category) : settings.article_kicker_fallback}</small>
-                <h3>{post.title}</h3>
-              </div>
-              <Arrow diagonal />
-            </a>
+        {/* 前 3 篇最新文章：照片卡片 */}
+        <div className="orbit-story-grid">
+          {posts.slice(0, 3).map((post) => (
+            <PostCard key={post.id} post={post} categories={categories} settings={settings} />
           ))}
         </div>
 
