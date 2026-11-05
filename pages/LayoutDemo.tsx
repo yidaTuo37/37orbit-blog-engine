@@ -227,8 +227,10 @@ function Sidebar({
 
       {/* --- 中部导航菜单项 --- */}
       <nav aria-label="页面导航">
-        {navItems.map((item, i) => {
+        {navItems.map((item) => {
           const isActive = !isArticle && view === item;
+          const isHome = item === 'home';
+          const categoryIndex = navItems.filter((nav) => nav !== 'home').indexOf(item) + 1;
           return (
             <a
               key={item}
@@ -236,8 +238,8 @@ function Sidebar({
               className={isActive ? 'active' : ''}
               aria-current={isActive ? 'page' : undefined}
             >
-              {/* 序号：01, 02, 03, 04 */}
-              <span className="orbit-nav-num">0{i + 1}</span>
+              {/* 首页不参与序号，分类从 01 开始 */}
+              <span className="orbit-nav-num">{isHome ? '' : `0${categoryIndex}`}</span>
               {/* 中文名称：首页 / 照片库 / 旅程 / 项目 */}
               <span>{labels[item]}</span>
               {/* 选中或悬停时显示的箭头 */}
@@ -418,7 +420,7 @@ function HomeView({
           index="01"
           note={settings.home_photos_note}
           title={settings.home_photos_title}
-          link={viewHref('frame')}
+          link="#/snapshots"
         />
 
         {/* 前 3 张精选照片卡片展示 */}
@@ -463,7 +465,7 @@ function HomeView({
           index="02"
           note={settings.home_stories_note}
           title={settings.home_stories_title}
-          link={viewHref('diary')}
+          link="#/latest"
         />
 
         {/* 前 3 篇最新文章条目展示 */}
@@ -711,6 +713,72 @@ function ProjectsView({
   );
 }
 
+/** 文章卡片：封面满铺 + 底部渐变蒙版 + 标题叠加；无封面用深色填充。 */
+function PostCard({
+  post,
+  categories,
+  settings,
+}: {
+  post: Post;
+  categories: Category[];
+  settings: SiteSettings;
+}) {
+  return (
+    <a href={postHref(post)} className={`orbit-story-card ${post.cover ? 'has-cover' : 'no-cover'}`}>
+      {post.cover ? <PostImage post={post} /> : null}
+      <span className="orbit-story-caption">
+        <small>
+          {post.category
+            ? categoryName(categories, post.category, post.category)
+            : settings.article_kicker_fallback}
+        </small>
+        <h3>{post.title}</h3>
+        {post.cover && post.summary ? <p>{post.summary}</p> : null}
+      </span>
+    </a>
+  );
+}
+
+/** 首页「随手拍 / 最近」的全部页面（不在侧边栏出现，仅从首页进入）。 */
+function CollectionView({
+  note,
+  title,
+  posts,
+  categories,
+  settings,
+  loading,
+  error,
+}: {
+  note: string;
+  title: string;
+  posts: Post[];
+  categories: Category[];
+  settings: SiteSettings;
+  loading: boolean;
+  error: string | null;
+}) {
+  return (
+    <>
+      <div className="orbit-page-intro">
+        <span className="orbit-kicker">{note}</span>
+        <h1>{title}</h1>
+      </div>
+      <section className="orbit-section">
+        <div className="orbit-story-grid">
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} categories={categories} settings={settings} />
+          ))}
+        </div>
+        <ArticleStatus
+          loading={loading}
+          error={error}
+          empty={posts.length ? undefined : settings.empty_articles_label}
+        />
+      </section>
+    </>
+  );
+}
+
 /**
  * 4.5 【通用分类视图 CategoryView】
  * 页面文案与布局（grid / list）全部来自 CMS「分类区」的 settings。
@@ -765,22 +833,7 @@ function CategoryView({
         ) : (
           <div className="orbit-story-grid">
             {posts.map((post) => (
-              <a
-                key={post.id}
-                href={postHref(post)}
-                className={`orbit-story-card ${post.cover ? 'has-cover' : 'no-cover'}`}
-              >
-                {post.cover ? <PostImage post={post} /> : null}
-                <span className="orbit-story-caption">
-                  <small>
-                    {post.category
-                      ? categoryName(categories, post.category, post.category)
-                      : settings.article_kicker_fallback}
-                  </small>
-                  <h3>{post.title}</h3>
-                  {post.cover && post.summary ? <p>{post.summary}</p> : null}
-                </span>
-              </a>
+              <PostCard key={post.id} post={post} categories={categories} settings={settings} />
             ))}
           </div>
         )}
@@ -844,6 +897,8 @@ export default function LayoutDemo({ route }: { route: string }) {
   const navItems = ['home', ...categories.map((category) => category.slug)];
   const navLabels: Record<string, string> = {
     home: defaultNavLabels.home,
+    snapshots: settings.home_photos_title,
+    latest: settings.home_stories_title,
     ...Object.fromEntries(categories.map((category) => [category.slug, category.name])),
   };
 
@@ -876,6 +931,28 @@ export default function LayoutDemo({ route }: { route: string }) {
           {isArticle ? (
             /* 文章详情页 */
             <ArticleDetail slug={route.slice('#/article/'.length)} settings={settings} />
+          ) : view === 'snapshots' ? (
+            /* 随手拍全部（兜底页，不在侧边栏） */
+            <CollectionView
+              note={settings.home_photos_note}
+              title={settings.home_photos_title}
+              posts={framePosts}
+              categories={categories}
+              settings={settings}
+              loading={loading}
+              error={error}
+            />
+          ) : view === 'latest' ? (
+            /* 最近全部（兜底页，不在侧边栏） */
+            <CollectionView
+              note={settings.home_stories_note}
+              title={settings.home_stories_title}
+              posts={uncategorizedPosts}
+              categories={categories}
+              settings={settings}
+              loading={loading}
+              error={error}
+            />
           ) : view === 'home' || !activeCategory ? (
             /* 首页视图（未分类文章作为「最近」兜底） */
             <HomeView
